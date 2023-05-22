@@ -1,18 +1,10 @@
 import os
-import socket
-import urllib
-import urllib.error
-import urllib.request
 
 import cv2
-import numpy as np
-from PIL import Image, UnidentifiedImageError
-from PIL.GifImagePlugin import GifImageFile
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QFont, QIcon, QPixmap
 from PyQt5.QtWidgets import (
-    QAction, QButtonGroup, QDialog, QFileDialog, QGridLayout, QHBoxLayout, QLabel,
-    QMenu, QPushButton, QRadioButton, QSlider, QVBoxLayout, QWidget,
+    QButtonGroup, QDialog, QGridLayout, QHBoxLayout, QLabel, QPushButton, QRadioButton, QSlider, QVBoxLayout,
 )
 
 from enums.dialog_status import DialogStatus
