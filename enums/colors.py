@@ -2,6 +2,8 @@ from enum import Enum
 
 
 class Colors(Enum):
+    LOG_GENERAL = (0,) * 3
+    
     # the text-color of the log when an image is loaded successfully
     LOG_LOAD_IMAGE = (85, 79, 182)
 

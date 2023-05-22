@@ -1,9 +1,6 @@
-from threading import Thread
-
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow
 
-from color_harmonization.main_process import do_process as do_color_harmonization_process
 from enums.process_status import ProcessStatus
 from loaded_image_obj import LoadedImagesDict
 from ui.qt_ui.loaded_images_list.loaded_images_list_widget import LoadedImagesListWidget
@@ -46,23 +43,13 @@ class MainWindow(QMainWindow):
     
     # a callback when image loading is done
     def finish_image_loading(self, win_name, img):
-        win_name = self.lis_imgs.deduplicate_win_name(win_name)
+        # win_name = self.lis_imgs.deduplicate_win_name(win_name)
         widget = self.lis_imgs.push_back(win_name, img)
         widget.notify_status_change(ProcessStatus.LOADED)
         LoadedImagesDict.add_processed_image(win_name, img, img)
         return True
 
-    # start the process a particular image
-    # def start_process(self, win_name, img):
-    #     Thread(
-    #         target=do_color_harmonization_process,
-    #         name=win_name,
-    #         daemon=True,
-    #         args=(win_name, img, widget, self.write_log,),
-    #     ).start()
-    #     return True
-
     # write a single log and the text-color at the log-area (text-browser)
-    def write_log(self, text, color):
+    def write_log(self, text, color=Colors.LOG_GENERAL):
         log = '<span style="color: rgb{};"> &gt; {}</span>'.format(str(color), f'<strong>{text}</strong>')
         self.log_area.append(log)
