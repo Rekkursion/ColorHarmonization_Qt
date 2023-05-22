@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1134</width>
+    <height>680</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+    <horstretch>1</horstretch>
+    <verstretch>1</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="font">
+   <font>
+    <family>Consolas</family>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Color Harmonization - ICG Term Project 2023 Spring, F09922184</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_2">
+    <property name="leftMargin">
+     <number>12</number>
+    </property>
+    <property name="topMargin">
+     <number>12</number>
+    </property>
+    <property name="rightMargin">
+     <number>12</number>
+    </property>
+    <property name="bottomMargin">
+     <number>12</number>
+    </property>
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="main_layout"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1134</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_File">
+    <property name="font">
+     <font>
+      <family>Consolas</family>
+     </font>
+    </property>
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menu_Load">
+     <property name="font">
+      <font>
+       <family>Consolas</family>
+      </font>
+     </property>
+     <property name="title">
+      <string>Load image(s)</string>
+     </property>
+     <addaction name="action_load_from_local"/>
+     <addaction name="action_load_from_url"/>
+     <addaction name="action_load_from_clipboard"/>
+     <addaction name="separator"/>
+    </widget>
+    <widget class="QMenu" name="menu_Save">
+     <property name="title">
+      <string>Save</string>
+     </property>
+     <addaction name="action_save_all"/>
+     <addaction name="action_save_selected"/>
+    </widget>
+    <addaction name="menu_Load"/>
+    <addaction name="menu_Save"/>
+   </widget>
+   <widget class="QMenu" name="menu_preferences">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <addaction name="action_open_settings"/>
+   </widget>
+   <addaction name="menu_File"/>
+   <addaction name="menu_preferences"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="font">
+    <font>
+     <family>Consolas</family>
+    </font>
+   </property>
+  </widget>
+  <action name="action_load_from_local">
+   <property name="text">
+    <string>From local</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Consolas</family>
+    </font>
+   </property>
+  </action>
+  <action name="action_load_from_clipboard">
+   <property name="text">
+    <string>From clipboard</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Consolas</family>
+    </font>
+   </property>
+  </action>
+  <action name="action_load_from_url">
+   <property name="text">
+    <string>From URL</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Consolas</family>
+    </font>
+   </property>
+  </action>
+  <action name="action_save_all">
+   <property name="text">
+    <string>Save all processed images to a directory</string>
+   </property>
+  </action>
+  <action name="action_save_selected">
+   <property name="text">
+    <string>Save the selected images to a directory</string>
+   </property>
+  </action>
+  <action name="action_browse_recently_loaded">
+   <property name="text">
+    <string>Browse</string>
+   </property>
+  </action>
+  <action name="action_clear_recently_loaded">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
+  <action name="action_open_settings">
+   <property name="text">
+    <string>Open settings panel</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
