@@ -10,7 +10,7 @@ _PROCESS_LOCK = Lock()
 
 
 # start doing the color harmonization
-def do_process(win_name, img, widget, log_writer):
+def do_process(win_name, img, widget, log_writer, resize_ratio, template_type):
     if img is None:
         return
     # acquire the lock to avoid race-condition and release it after finishing the task (before the key-waiting)
@@ -18,7 +18,7 @@ def do_process(win_name, img, widget, log_writer):
         try:
             # start
 
-            print(f'| PROCESS | {win_name} | {img.shape} |')
+            print(f'| PROCESS | {win_name} | {img.shape} | {resize_ratio:.2f} | {template_type} |')
             widget.notify_status_change(ProcessStatus.PROCESSING)
 
             # harmonize
