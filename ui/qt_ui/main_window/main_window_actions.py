@@ -10,15 +10,21 @@ from enums.colors import Colors
 from enums.dialog_status import DialogStatus
 from loaded_image_obj import LoadedImagesDict
 from ui.qt_ui.url_input_dialog.url_input_dialog import URLInputDialog
+from ui.qt_ui.global_config_panel.global_config_panel import GlobalConfigPanel
 from utils.general_utils import gut_get_ext, gut_load_image
 
 
 # the triggered event for action-load-from-local
 def action_action_open_settings_triggered(self):
     def open_settings_triggered():
-        # TODO
-        print('open_settings_triggered')
-        pass
+        # create & execute a dialog for global settings
+        dialog = GlobalConfigPanel()
+        dialog.show()
+        dialog.exec()
+        if dialog.dialog_status == DialogStatus.ACCEPTED:
+            self.write_log(f'The global settings have been updated.', Colors.LOG_GENERAL)
+        elif dialog.dialog_status == DialogStatus.CANCELED:
+            pass
     return open_settings_triggered
 
 
@@ -99,8 +105,8 @@ def action_load_from_clipboard_triggered(self):
                     elif isinstance(item, str):
                         has_loaded = True
                         start(f'From clipboard {self.clipboard_counter}', gut_load_image(item))
-        except BaseException:
-            self.write_log('Failed to load the image from clipboard. Please make sure the copied object is an image.', Colors.LOG_ERROR)
+        except BaseException as e:
+            self.write_log(f'Failed to load the image from clipboard. Please make sure the copied object is an image: {e}', Colors.LOG_ERROR)
         # if there's nothing loaded
         if not has_loaded:
             self.write_log('No images detected in the clipboard.', Colors.LOG_WARNING)

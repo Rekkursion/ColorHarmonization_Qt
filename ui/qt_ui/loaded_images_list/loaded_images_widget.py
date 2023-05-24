@@ -133,6 +133,7 @@ class LoadedImagesWidget(QWidget):
             self.btn_configurate.click()
         elif status == ProcessStatus.PROCESSING:
             self.btn_configurate.setEnabled(False)
+            self.btn_start_process.setEnabled(False)
         # if the process is done
         elif status == ProcessStatus.DONE:
             self.btn_configurate.setEnabled(True)

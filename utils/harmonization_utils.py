@@ -96,7 +96,7 @@ def hut_draw_ring_shaped_histogram(hist, templ=None, alpha=0., shape_of_hist='se
     # draw the sectors' areas if which type of the template is provided
     if templ is not None:
         # sectors_vis = np.full((H, W, 4,), 255, dtype=np.uint8)
-        sectors_vis = ut_add_opaque_channel(np.zeros((H, W, 3,), dtype=np.uint8))
+        sectors_vis = hut_add_opaque_channel(np.zeros((H, W, 3,), dtype=np.uint8))
         for sector in templ.sectors:
             cv2.ellipse(
                 sectors_vis,
@@ -116,13 +116,13 @@ def hut_draw_ring_shaped_histogram(hist, templ=None, alpha=0., shape_of_hist='se
 # visualize the histograms on a color-gradient ring
 def hut_visualize_histogram(hist, templ=None, alpha=0., raw_im=None, show=False, save_path=None):
     # create the ring-shaped histogram visualization
-    vis = ut_draw_ring_shaped_histogram(hist, templ, alpha)
+    vis = hut_draw_ring_shaped_histogram(hist, templ, alpha)
 
     # stack the raw image, if provided
     if raw_im is not None:
         resize_ratio = vis.shape[0] / raw_im.shape[0]
         stacked_im = cv2.resize(raw_im, (int(raw_im.shape[1] * resize_ratio), vis.shape[0],))
-        stacked_im = ut_add_opaque_channel(stacked_im)
+        stacked_im = hut_add_opaque_channel(stacked_im)
         vis = np.hstack((vis, stacked_im,))
 
     # show the histogram visualization
@@ -135,10 +135,10 @@ def hut_visualize_histogram(hist, templ=None, alpha=0., raw_im=None, show=False,
 
 # calculate the arc-length
 def hut_calc_arc_len(deg1, deg2=None, r=10.):
-    deg1 = ut_canonicalize_deg(deg1)
+    deg1 = hut_canonicalize_deg(deg1)
     if deg2 is None:
         return 2. * np.pi * r * ((abs(deg1) % 180) / 180.)
-    deg2 = ut_canonicalize_deg(deg2)
+    deg2 = hut_canonicalize_deg(deg2)
     return 2. * np.pi * r * ((abs(deg1 - deg2) % 180) / 180.)
 
 

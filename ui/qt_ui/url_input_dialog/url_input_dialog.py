@@ -68,13 +68,13 @@ class URLInputDialog(QDialog):
             # change the dialog-status to accepted
             self.dialog_status = DialogStatus.ACCEPTED
         # some possible errors due to the network-related things (url, socket, http, etc.)
-        except (AttributeError, socket.error, urllib.error.URLError, urllib.error.HTTPError, urllib.error.ContentTooShortError):
-            self.err_msg = 'Image downloading failed.'
+        except (AttributeError, socket.error, urllib.error.URLError, urllib.error.HTTPError, urllib.error.ContentTooShortError) as e:
+            self.err_msg = f'Image downloading failed: {e}'
             # change the dialog-status to error
             self.dialog_status = DialogStatus.ERROR
         # some possible errors since the loaded image may be with an unknown or unsupported format/content
-        except (ValueError, UnidentifiedImageError, OSError):
-            self.err_msg = 'Unknown image file. Please aware that GIF files are NOT supported.'
+        except (ValueError, UnidentifiedImageError, OSError) as e:
+            self.err_msg = f'Unknown image file. Please aware that GIF files are NOT supported: {e}'
             # change the dialog-status to error
             self.dialog_status = DialogStatus.ERROR
 
