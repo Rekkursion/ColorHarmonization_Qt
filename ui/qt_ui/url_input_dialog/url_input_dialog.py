@@ -2,6 +2,7 @@ import socket
 import urllib
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 import numpy as np
 from PIL import Image, UnidentifiedImageError
@@ -32,6 +33,7 @@ class URLInputDialog(QDialog):
         self.setWindowModality(Qt.ApplicationModal)
         # the loaded image, if any
         self.loaded_img = None
+        self.cache_fname = None
         # the error message, if needs
         self.err_msg = ''
         # the status of the dialog
@@ -51,12 +53,13 @@ class URLInputDialog(QDialog):
     # download the image from the designated url-text
     def download_image_from_url(self, url):
         try:
-            # the pre-defined temporal filename
-            filename = './resource/dl_img/url-loaded'
+            # the pre-defined filename in the cache directory (minus 1 due to .gitkeep)
+            num_downloaded_before = sum(1 for x in Path('./resource/dl_img').glob('*') if x.is_file()) - 1
+            self.cache_fname = f'./resource/dl_img/url-loaded_{num_downloaded_before:03d}_{Path(url).name}'
             # download the file through the designated url
-            urllib.request.urlretrieve(url, filename)
+            urllib.request.urlretrieve(url, self.cache_fname)
             # open the file as an image
-            img = gut_load_image(filename)
+            img = gut_load_image(self.cache_fname)
             # if the loaded image is a gif, raise an error because the gif format is NOT supported
             if isinstance(Image.fromarray(img), GifImageFile):
                 raise UnidentifiedImageError
@@ -65,7 +68,7 @@ class URLInputDialog(QDialog):
             # change the dialog-status to accepted
             self.dialog_status = DialogStatus.ACCEPTED
         # some possible errors due to the network-related things (url, socket, http, etc.)
-        except (socket.error, urllib.error.URLError, urllib.error.HTTPError, urllib.error.ContentTooShortError):
+        except (AttributeError, socket.error, urllib.error.URLError, urllib.error.HTTPError, urllib.error.ContentTooShortError):
             self.err_msg = 'Image downloading failed.'
             # change the dialog-status to error
             self.dialog_status = DialogStatus.ERROR

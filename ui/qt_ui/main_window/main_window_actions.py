@@ -46,7 +46,8 @@ def action_load_from_url_triggered(self):
         dialog.show()
         dialog.exec()
         if dialog.get_status() == DialogStatus.ACCEPTED:
-            win_name = dialog.get_url()
+            # win_name = dialog.get_url()
+            win_name = dialog.cache_fname
             self.write_log(f'The image <i>{win_name}</i> has been loaded from URL.', Colors.LOG_LOAD_IMAGE)
             self.finish_image_loading(win_name, dialog.get_loaded_image())
         elif dialog.get_status() == DialogStatus.ERROR:
