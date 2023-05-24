@@ -9,12 +9,11 @@ from PyQt5.QtWidgets import (
 
 from enums.dialog_status import DialogStatus
 from utils.general_utils import gut_load_image
+from utils.harmonization_utils import hut_map_template_type
 
 
 # the panel (dialog) for the configuration of a harmonization process
 class HarmonizationConfigPanel(QDialog):
-    TEMPL_TYPES_MAPPING = ('i', 'V', 'L', 'I', 'T', 'Y', 'X',)
-
     """
         txt_url:    the line-edit for entering the text of url
         btn_apply:  the push-button for applying the entered text of url
@@ -37,7 +36,7 @@ class HarmonizationConfigPanel(QDialog):
         self.grid_icons = QGridLayout()
         self.grp_icons = QButtonGroup()
         for k in range(7):
-            icon_fpath = f'./resource/template_type_{k}_{HarmonizationConfigPanel.TEMPL_TYPES_MAPPING[k]}.png'
+            icon_fpath = f'./resource/template_type_{k}_{hut_map_template_type(k)}.png'
             if not os.path.exists(icon_fpath):
                 y = (k // 4) * (h // 2)
                 x = (k % 4) * (w // 4)

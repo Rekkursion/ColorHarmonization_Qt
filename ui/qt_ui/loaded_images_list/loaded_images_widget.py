@@ -14,6 +14,7 @@ from enums.process_status import ProcessStatus
 from loaded_image_obj import LoadedImagesDict
 from ui.qt_ui.harmonization_config_panel.harmonization_config_panel import HarmonizationConfigPanel
 from utils.general_utils import gut_get_ext, gut_replace_ext
+from utils.harmonization_utils import hut_map_template_type
 
 
 class LoadedImagesWidget(QWidget):
@@ -130,8 +131,11 @@ class LoadedImagesWidget(QWidget):
         if status == ProcessStatus.LOADED:
             self.btn_configurate.setEnabled(True)
             self.btn_configurate.click()
+        elif status == ProcessStatus.PROCESSING:
+            self.btn_configurate.setEnabled(False)
         # if the process is done
         elif status == ProcessStatus.DONE:
+            self.btn_configurate.setEnabled(True)
             # initially show the size of the processed image (although it's still the same as the original one)
             self.notify_size_change()
 
@@ -194,7 +198,7 @@ class LoadedImagesWidget(QWidget):
     @property
     def config_display_text(self):
         r = self.process_cfg['resize_ratio']
-        t = HarmonizationConfigPanel.TEMPL_TYPES_MAPPING[self.process_cfg['template_type']]
+        t = hut_map_template_type(self.process_cfg['template_type'])
         return f'Current configuration: {"{"} ' + \
                f'Resize-ratio: <span style="color: red;"><strong>{r:.2f}</strong></span>, ' + \
                f'Template: <span style="color: red;"><strong>{t}</strong></span>-type {"}"}'
