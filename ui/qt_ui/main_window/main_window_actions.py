@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -59,6 +60,12 @@ def action_load_from_url_triggered(self):
 def action_load_from_clipboard_triggered(self):
     # start the process
     def start(win_name, img):
+        # save the image from the clipboard
+        save_dir = Path('./resource/cb_img/')
+        save_dir.mkdir(parents=True, exist_ok=True)
+        win_name = str(save_dir / f'from_clipboard_{self.clipboard_counter:03d}.jpg')
+        cv2.imwrite(win_name, img)
+        # update the clipboard counter
         self.clipboard_counter += 1
         self.write_log(f'The image <i>{win_name}</i> has been loaded from the clipboard.', Colors.LOG_LOAD_IMAGE)
         self.finish_image_loading(win_name, img)
