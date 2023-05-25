@@ -46,7 +46,7 @@ class MainWindow(QMainWindow):
         # win_name = self.lis_imgs.deduplicate_win_name(win_name)
         widget = self.lis_imgs.push_back(win_name, img)
         widget.notify_status_change(ProcessStatus.LOADED)
-        LoadedImagesDict.add_processed_image(win_name, img, img)
+        LoadedImagesDict.add_processed_image(win_name, img)
         return True
 
     # write a single log and the text-color at the log-area (text-browser)

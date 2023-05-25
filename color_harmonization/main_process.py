@@ -9,6 +9,8 @@ from enums.colors import Colors
 from enums.process_status import ProcessStatus
 from ui.qt_ui.global_config_panel.global_config_panel import GlobalConfigPanel
 from utils.harmonization_utils import hut_convert_image_into_hsv_w_resizing, hut_map_template_type
+from loaded_image_obj import LoadedImagesDict
+
 
 _PROCESS_LOCK = Lock()
 
@@ -49,11 +51,13 @@ def do_process(win_name, img, widget, log_writer, resize_ratio, template_type):
             save_vis_path.parent.mkdir(parents=True, exist_ok=True)
 
             # do color harmonization
-            harmonize.harmonize(
+            harmonized = harmonize.harmonize(
                 resized_im, hsv, templ,
                 vis_save_path=save_vis_path,
                 result_save_path=save_res_path,
             )
+            # update the processed image
+            LoadedImagesDict.update_processed_image(win_name, harmonized)
             print()
             print('=====================================================')
             print()

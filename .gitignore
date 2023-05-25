@@ -2,5 +2,6 @@ venv/
 ve/
 __pycache__/
 resource/**/*.jpg
+resource/**/*.jpeg
 resource/**/*.png
 outputs/

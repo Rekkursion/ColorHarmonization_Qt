@@ -183,12 +183,10 @@ def harmonize(
 
     # re-construct the color-harmonized image
     new_im = cv2.cvtColor(new_hsv, cv2.COLOR_HSV2BGR)
+    ret_im = copy.deepcopy(new_im)
     new_hsv = cv2.cvtColor(new_im, cv2.COLOR_BGR2HSV)
     new_hue_hist = _calc_hue_histogram(new_hsv)
     hut_visualize_histogram(new_hue_hist, templ, alpha, new_im, save_path=str(vis_parent / f'{vis_stem}_3-harmonized{vis_ext}'), show=False)
-    
-    # save the result
-    cv2.imwrite(str(result_save_path), new_im)
 
     # do visualization
     raw_hist_vis = hut_draw_ring_shaped_histogram(hue_hist, templ, alpha)
@@ -210,3 +208,8 @@ def harmonize(
     cv2.imwrite(str(vis_parent / f'{vis_stem}_4-final{vis_ext}'), final_vis)
     cv2.imshow('Result', final_vis)
     cv2.waitKey(0)
+    
+    # save the result
+    cv2.imwrite(str(result_save_path), ret_im)
+
+    return ret_im

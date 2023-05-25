@@ -3,7 +3,7 @@ import cv2
 
 # the class for storing some information of a loaded image
 class LoadedImageInfo:
-    def __init__(self, processed_img, orig_img):
+    def __init__(self, orig_img, processed_img=None):
         self.processed_img = processed_img
         self.orig_img = orig_img
 
@@ -19,8 +19,8 @@ class LoadedImagesDict:
 
     # add a new processed image
     @classmethod
-    def add_processed_image(self, win_name, new_img, orig_img):
-        info = LoadedImageInfo(new_img, orig_img)
+    def add_processed_image(self, win_name, orig_img, new_img=None):
+        info = LoadedImageInfo(orig_img, new_img)
         self.loaded_images[win_name] = info
 
     # update the processed image

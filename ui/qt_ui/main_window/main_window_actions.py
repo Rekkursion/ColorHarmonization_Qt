@@ -143,25 +143,28 @@ def action_save_all_triggered(self):
 # the triggered-event for saving selected images to a directory
 def action_save_selected_triggered(self):
     def save_selected_triggered():
-        # open the dialog to let the user select an existing directory
-        dir_name = QFileDialog.getExistingDirectory(parent=self, caption='Select a directory for saving')
-        # iterate all loaded images
-        if dir_name != '':
-            cnt = 0
-            for item in self.lis_imgs.selectedItems():
-                # get its window-name of a single image as the output filename
-                win_name = self.lis_imgs.itemWidget(item).win_name
-                # determine the extension of the output filename
-                ext = gut_get_ext(win_name)
-                if ext == '':
-                    ext = '.jpg'
-                # write it out
-                img = LoadedImagesDict.get_processed_image(win_name)
-                if img is not None:
-                    cnt += 1
-                    cv2.imwrite(os.path.join(dir_name, f'processed_{cnt}{ext}'), img)
-            if cnt > 0:
-                self.write_log('All selected processed images have been saved to the designated location.', Colors.LOG_IMAGE_SAVED)
-            else:
-                self.write_log('No any images which have been processed in the selected set.', Colors.LOG_WARNING)
+        if self.lis_imgs.selectedItems().__len__() == 0:
+            self.write_log('No selected images to be saved.', Colors.LOG_WARNING)
+        else:
+            # open the dialog to let the user select an existing directory
+            dir_name = QFileDialog.getExistingDirectory(parent=self, caption='Select a directory for saving')
+            # iterate all loaded images
+            if dir_name != '':
+                cnt = 0
+                for item in self.lis_imgs.selectedItems():
+                    # get its window-name of a single image as the output filename
+                    win_name = self.lis_imgs.itemWidget(item).win_name
+                    # determine the extension of the output filename
+                    ext = gut_get_ext(win_name)
+                    if ext == '':
+                        ext = '.jpg'
+                    # write it out
+                    img = LoadedImagesDict.get_processed_image(win_name)
+                    if img is not None:
+                        cnt += 1
+                        cv2.imwrite(os.path.join(dir_name, f'processed_{cnt}{ext}'), img)
+                if cnt > 0:
+                    self.write_log(f'Totally {cnt} selected processed images have been saved to the designated location.', Colors.LOG_IMAGE_SAVED)
+                else:
+                    self.write_log('No selected images which have been processed to be saved.', Colors.LOG_WARNING)
     return save_selected_triggered
