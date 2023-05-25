@@ -94,6 +94,7 @@ class LoadedImagesWidget(QWidget):
         # disable all buttons from the beginning (they will be enabled until its process is done)
         self.btn_configurate.setDisabled(True)
         self.btn_show_img.setDisabled(True)
+        self.btn_start_process.setDisabled(True)
         self.btn_save_processed.setDisabled(True)
         self.action_show_proc.setDisabled(True)
 
@@ -125,18 +126,21 @@ class LoadedImagesWidget(QWidget):
         self.lbl_status.setText(status.value)
         # enable/disable the buttons, if necessary
         self.btn_show_img.setEnabled(status == ProcessStatus.DONE or status == ProcessStatus.LOADED)
-        self.btn_start_process.setDisabled(status == ProcessStatus.DONE)
         self.btn_save_processed.setEnabled(status == ProcessStatus.DONE)
         # if the image is just loaded
         if status == ProcessStatus.LOADED:
             self.btn_configurate.setEnabled(True)
+            self.btn_start_process.setEnabled(True)
+            self.btn_save_processed.setEnabled(False)
             self.btn_configurate.click()
         elif status == ProcessStatus.PROCESSING:
             self.btn_configurate.setEnabled(False)
             self.btn_start_process.setEnabled(False)
+            self.btn_save_processed.setEnabled(False)
         # if the process is done
         elif status == ProcessStatus.DONE:
             self.btn_configurate.setEnabled(True)
+            self.btn_start_process.setEnabled(True)
             self.btn_save_processed.setEnabled(True)
             # initially show the size of the processed image (although it's still the same as the original one)
             self.notify_size_change()
@@ -145,7 +149,7 @@ class LoadedImagesWidget(QWidget):
     def notify_size_change(self):
         # get the new size of the processed image
         new_size = LoadedImagesDict.get_size_of_processed_image(self.win_name)
-        self.btn_save_processed.setText(f'{self.btn_save_processed.text()} [{new_size[0]} x {new_size[1]}]')
+        self.btn_save_processed.setText(f'Show the processed image [{new_size[0]} x {new_size[1]}]')
 
     # pop up a panel for harmonization configuration
     def action_pop_up_configuration_panel(self):
