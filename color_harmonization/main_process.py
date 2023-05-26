@@ -1,7 +1,5 @@
-from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
-from threading import Lock, Thread
-from typing import Any
+from threading import Lock
 
 import cv2
 from PyQt5 import QtCore
@@ -10,15 +8,15 @@ import color_harmonization.harmonic_template as harmonic_template
 import color_harmonization.harmonize as harmonize
 from enums.colors import Colors
 from enums.process_status import ProcessStatus
+from loaded_image_obj import LoadedImagesDict
 from ui.qt_ui.global_config_panel.global_config_panel import GlobalConfigPanel
 from utils.harmonization_utils import hut_convert_image_into_hsv_w_resizing, hut_map_template_type
-from loaded_image_obj import LoadedImagesDict
 
 
 _PROCESS_LOCK = Lock()
 
 
-class MainProcessThread(QtCore.QThread):
+class ProcessThread(QtCore.QThread):
     signal_process_done = QtCore.pyqtSignal(ProcessStatus, str, tuple)
 
     def __init__(self, parent, target, args, kwargs):
@@ -36,12 +34,18 @@ class MainProcessThread(QtCore.QThread):
 
 
 # start doing the color harmonization
-def do_process(curr_thread, win_name, img, widget, log_writer, resize_ratio, template_type):
+def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type):
     if img is None:
         return
     if widget.process_status in (ProcessStatus.ERROR, ProcessStatus.LOADING, ProcessStatus.PROCESSING,):
         return
     # acquire the lock and release it after finishing the task (before the key-waiting)
+    if _PROCESS_LOCK.locked():
+        curr_thread.signal_process_done.emit(
+            ProcessStatus.WAITING,
+            f'Waiting for another harmonization done for the selected one <i>{win_name}</i>.',
+            Colors.LOG_WARNING,
+        )
     with _PROCESS_LOCK:
         try:
             ''' start '''
@@ -83,7 +87,7 @@ def do_process(curr_thread, win_name, img, widget, log_writer, resize_ratio, tem
             print()
             
             ''' done '''
-            
+
             curr_thread.signal_process_done.emit(
                 ProcessStatus.DONE,
                 f'The process of the loaded image <i>{win_name}</i> has been done.',

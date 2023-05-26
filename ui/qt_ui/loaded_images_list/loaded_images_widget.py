@@ -1,15 +1,12 @@
-from threading import Thread
-
 import cv2
-from PyQt5 import QtWidgets
-from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (
     QAction, QFileDialog, QHBoxLayout, QLabel, QMenu, QPushButton, QVBoxLayout, QWidget,
 )
 
-from color_harmonization.main_process import do_process as do_color_harmonization_process, MainProcessThread
+from color_harmonization.main_process import ProcessThread
+from color_harmonization.main_process import do_process as do_color_harmonization_process
 from enums.colors import Colors
 from enums.dialog_status import DialogStatus
 from enums.process_status import ProcessStatus
@@ -126,7 +123,7 @@ class LoadedImagesWidget(QWidget):
             self.btn_start_process.setEnabled(True)
             self.btn_save_processed.setEnabled(False)
             self.btn_configurate.click()
-        elif status == ProcessStatus.PROCESSING:
+        elif status in (ProcessStatus.WAITING, ProcessStatus.PROCESSING,):
             self.btn_configurate.setEnabled(False)
             self.btn_start_process.setEnabled(False)
             self.btn_save_processed.setEnabled(False)
@@ -161,29 +158,16 @@ class LoadedImagesWidget(QWidget):
 
     # start the harmonization process
     def action_start_process(self):
-        thread = MainProcessThread(
+        thread = ProcessThread(
             self,
             target=do_color_harmonization_process,
             args=(
                 self.win_name,
                 LoadedImagesDict.get_original_image(self.win_name),
                 self,
-                self.log_writer,
             ),
             kwargs=self.process_cfg,
         )
-        # thread = MainProcessThread(
-        #     target=do_color_harmonization_process,
-        #     name=self.win_name,
-        #     daemon=True,
-        #     args=(
-        #         self.win_name,
-        #         LoadedImagesDict.get_original_image(self.win_name),
-        #         self,
-        #         self.log_writer,
-        #     ),
-        #     kwargs=self.process_cfg,
-        # )
         thread.signal_process_done.connect(self.singal_process_done_emitted)
         thread.start()
         return True

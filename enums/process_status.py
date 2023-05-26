@@ -3,8 +3,9 @@ from enum import Enum
 
 # the enum-class of statuses of the image-process
 class ProcessStatus(Enum):
-    LOADING = 'Loading or waiting'
+    LOADING = 'Loading'
     LOADED = 'Loaded'
+    WAITING = 'Waiting...'
     PROCESSING = 'Processing'
     DONE = 'Done'
     ERROR = 'ERROR happened'
@@ -14,7 +15,9 @@ class ProcessStatus(Enum):
         if self == ProcessStatus.LOADING:
             return 67, 142, 243  # orange
         elif self == ProcessStatus.LOADED:
-            return 152, 109, 33  # ???
+            return 0, 0, 0  # black
+        elif self == ProcessStatus.WAITING:
+            return 128, 1, 127  # lilla
         elif self == ProcessStatus.PROCESSING:
             return 253, 16, 19  # blue
         elif self == ProcessStatus.DONE:
