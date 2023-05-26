@@ -1,13 +1,15 @@
 from threading import Thread
 
 import cv2
+from PyQt5 import QtWidgets
+from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (
     QAction, QFileDialog, QHBoxLayout, QLabel, QMenu, QPushButton, QVBoxLayout, QWidget,
 )
 
-from color_harmonization.main_process import do_process as do_color_harmonization_process
+from color_harmonization.main_process import do_process as do_color_harmonization_process, MainProcessThread
 from enums.colors import Colors
 from enums.dialog_status import DialogStatus
 from enums.process_status import ProcessStatus
@@ -18,15 +20,6 @@ from utils.harmonization_utils import hut_map_template_type
 
 
 class LoadedImagesWidget(QWidget):
-    """
-        lbl_order:              the label for displaying the opening order among all loaded images
-        lbl_win_name:           the label for displaying the (window) name of this image
-        lbl_size:               the label for displaying the size of the original image
-        lbl_status_title:       the label for displaying the status title
-        lbl_status:             the label for displaying the current status of image-processing
-        btn_show_img:           the menu-like button for showing both original & processed images
-        btn_save_processed:     the button for saving the processed image
-    """
     def __init__(self, win_name, img, order, log_writer=None, parent=None):
         super(LoadedImagesWidget, self).__init__(parent)
         # the configuration for harmonization
@@ -70,7 +63,7 @@ class LoadedImagesWidget(QWidget):
             QPushButton:hover:!pressed {background-color: rgb(226, 230, 234);}
         """)
         self.btn_start_process = QPushButton('Start process')
-        self.btn_save_processed = QPushButton('Save the processed image')
+        self.btn_save_processed = QPushButton('Save the processed image to...')
         self.hbox_thr = QHBoxLayout()
         self.hbox_thr.addWidget(self.btn_show_img, 0)
         self.hbox_thr.addWidget(self.btn_start_process, 1)
@@ -149,7 +142,7 @@ class LoadedImagesWidget(QWidget):
     def notify_size_change(self):
         # get the new size of the processed image
         new_size = LoadedImagesDict.get_size_of_processed_image(self.win_name)
-        self.btn_save_processed.setText(f'Show the processed image [{new_size[0]} x {new_size[1]}]')
+        self.btn_save_processed.setText(f'Save the processed image [{new_size[0]} x {new_size[1]}] to...')
 
     # pop up a panel for harmonization configuration
     def action_pop_up_configuration_panel(self):
@@ -168,10 +161,9 @@ class LoadedImagesWidget(QWidget):
 
     # start the harmonization process
     def action_start_process(self):
-        Thread(
+        thread = MainProcessThread(
+            self,
             target=do_color_harmonization_process,
-            name=self.win_name,
-            daemon=True,
             args=(
                 self.win_name,
                 LoadedImagesDict.get_original_image(self.win_name),
@@ -179,8 +171,26 @@ class LoadedImagesWidget(QWidget):
                 self.log_writer,
             ),
             kwargs=self.process_cfg,
-        ).start()
+        )
+        # thread = MainProcessThread(
+        #     target=do_color_harmonization_process,
+        #     name=self.win_name,
+        #     daemon=True,
+        #     args=(
+        #         self.win_name,
+        #         LoadedImagesDict.get_original_image(self.win_name),
+        #         self,
+        #         self.log_writer,
+        #     ),
+        #     kwargs=self.process_cfg,
+        # )
+        thread.signal_process_done.connect(self.singal_process_done_emitted)
+        thread.start()
         return True
+    
+    def singal_process_done_emitted(self, process_status, msg, msg_color):
+        self.log_writer(msg, msg_color)
+        self.notify_status_change(process_status)
     
     # the action of saving the processed image
     def action_save_processed_image(self):

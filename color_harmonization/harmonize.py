@@ -207,7 +207,7 @@ def harmonize(
     ))
     cv2.imwrite(str(vis_parent / f'{vis_stem}_4-final{vis_ext}'), final_vis)
     cv2.imshow('Result', final_vis)
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
     
     # save the result
     cv2.imwrite(str(result_save_path), ret_im)

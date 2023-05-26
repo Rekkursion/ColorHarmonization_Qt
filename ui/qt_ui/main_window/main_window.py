@@ -9,14 +9,6 @@ from ui.qt_ui.main_window.main_window_actions import *
 
 
 class MainWindow(QMainWindow):
-    """
-        action_load_from_local:         the action for loading the image from local
-        action_load_from_url:           the action for loading the image from a particular url
-        action_load_from_clipboard:     the action for loading the image from the clipboard
-        action_save_all:                the action for saving all the processed images to a directory
-        action_save_selected:           the action for saving the selected images to a directory
-        lis_imgs:                       the list-widget for showing all opened images
-    """
     def __init__(self):
         super(MainWindow, self).__init__()
         # load the UI

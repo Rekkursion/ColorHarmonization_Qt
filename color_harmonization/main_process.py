@@ -1,7 +1,10 @@
+from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
-from threading import Lock
+from threading import Lock, Thread
+from typing import Any
 
 import cv2
+from PyQt5 import QtCore
 
 import color_harmonization.harmonic_template as harmonic_template
 import color_harmonization.harmonize as harmonize
@@ -15,8 +18,25 @@ from loaded_image_obj import LoadedImagesDict
 _PROCESS_LOCK = Lock()
 
 
+class MainProcessThread(QtCore.QThread):
+    signal_process_done = QtCore.pyqtSignal(ProcessStatus, str, tuple)
+
+    def __init__(self, parent, target, args, kwargs):
+        super().__init__(parent)
+        self.target = target
+        self.args = args
+        self.kwargs = kwargs
+    
+    def run(self):
+        self.target(
+            self,
+            *self.args,
+            **self.kwargs,
+        )
+
+
 # start doing the color harmonization
-def do_process(win_name, img, widget, log_writer, resize_ratio, template_type):
+def do_process(curr_thread, win_name, img, widget, log_writer, resize_ratio, template_type):
     if img is None:
         return
     if widget.process_status in (ProcessStatus.ERROR, ProcessStatus.LOADING, ProcessStatus.PROCESSING,):
@@ -64,13 +84,19 @@ def do_process(win_name, img, widget, log_writer, resize_ratio, template_type):
             
             ''' done '''
             
-            widget.notify_status_change(ProcessStatus.DONE)
-            log_writer(f'The process of the loaded image <i>{win_name}</i> has been done.', Colors.LOG_PROCESS_DONE)
+            curr_thread.signal_process_done.emit(
+                ProcessStatus.DONE,
+                f'The process of the loaded image <i>{win_name}</i> has been done.',
+                Colors.LOG_PROCESS_DONE,
+            )
 
             # set the mouse callback to activate some user events
             # cv2.setMouseCallback(win_name, mouse_callback, (win_name, widget,))
         except BaseException as e:
-            widget.notify_status_change(ProcessStatus.ERROR)
-            log_writer(f'Error happened when processing color harmonization on the image <i>{win_name}</i>: {e}', Colors.LOG_ERROR)
+            curr_thread.signal_process_done.emit(
+                ProcessStatus.ERROR,
+                f'Error happened when processing color harmonization on the image <i>{win_name}</i>: {e}',
+                Colors.LOG_ERROR,
+            )
     # wait for user's action to keep the cv-window
     cv2.waitKey(0)
