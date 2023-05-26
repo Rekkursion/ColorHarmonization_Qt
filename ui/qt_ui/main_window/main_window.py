@@ -40,6 +40,8 @@ class MainWindow(QMainWindow):
         self.action_save_all.triggered.connect(action_save_all_triggered(self))
         self.action_save_selected.triggered.connect(action_save_selected_triggered(self))
         self.action_open_settings.triggered.connect(action_action_open_settings_triggered(self))
+        self.action_open_res_dir.triggered.connect(action_open_res_dir_triggered(self))
+        self.action_open_vis_dir.triggered.connect(action_open_vis_dir_triggered(self))
     
     # a callback when image loading is done
     def finish_image_loading(self, win_name, img):

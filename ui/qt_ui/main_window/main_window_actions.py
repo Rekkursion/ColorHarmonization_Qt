@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+import platform
+import subprocess
 
 import cv2
 import numpy as np
@@ -11,7 +13,7 @@ from enums.dialog_status import DialogStatus
 from loaded_image_obj import LoadedImagesDict
 from ui.qt_ui.url_input_dialog.url_input_dialog import URLInputDialog
 from ui.qt_ui.global_config_panel.global_config_panel import GlobalConfigPanel
-from utils.general_utils import gut_get_ext, gut_load_image
+from utils.general_utils import gut_get_ext, gut_load_image, gut_open_directory_in_explorer
 
 
 # the triggered event for action-load-from-local
@@ -140,7 +142,7 @@ def action_save_all_triggered(self):
     return save_all_triggered
 
 
-# the triggered-event for saving selected images to a directory
+# the triggered event for saving selected images to a directory
 def action_save_selected_triggered(self):
     def save_selected_triggered():
         if self.lis_imgs.selectedItems().__len__() == 0:
@@ -168,3 +170,21 @@ def action_save_selected_triggered(self):
                 else:
                     self.write_log('No selected images which have been processed to be saved.', Colors.LOG_WARNING)
     return save_selected_triggered
+
+
+# the triggered event for opening the results directory
+def action_open_res_dir_triggered(self):
+    def open_res_dir_triggered():
+        path = os.path.abspath(str(GlobalConfigPanel.save_res_dir))
+        if not gut_open_directory_in_explorer(path):
+            self.write_log(f'The results path {path} does not exist at the present time.', Colors.LOG_ERROR)
+    return open_res_dir_triggered
+
+
+# the triggered event for opening the visualizations directory
+def action_open_vis_dir_triggered(self):
+    def open_vis_dir_triggered():
+        path = os.path.abspath(str(GlobalConfigPanel.save_vis_dir))
+        if not gut_open_directory_in_explorer(path):
+            self.write_log(f'The visualizations path {path} does not exist at the present time.', Colors.LOG_ERROR)
+    return open_vis_dir_triggered

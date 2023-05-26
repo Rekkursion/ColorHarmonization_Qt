@@ -1,4 +1,7 @@
+import os
 from pathlib import Path
+import platform
+import subprocess
 
 import cv2
 import numpy as np
@@ -26,3 +29,16 @@ def gut_get_ext(fpath):
 # replace the extension of a filename/path
 def gut_replace_ext(fpath, ext):
     return str(Path(fpath).with_suffix(ext))
+
+
+# https://stackoverflow.com/questions/6631299/python-opening-a-folder-in-explorer-nautilus-finder
+def gut_open_directory_in_explorer(path):
+    if os.path.exists(path):
+        if platform.system() == 'Windows':
+            os.startfile(os.path.abspath(path))
+        elif platform.system() == 'Darwin':
+            subprocess.Popen(['open', path,])
+        else:
+            subprocess.Popen(['xdg-open', path,])
+        return True
+    return False

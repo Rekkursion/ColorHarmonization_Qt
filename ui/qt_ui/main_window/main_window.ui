@@ -84,6 +84,8 @@
     </widget>
     <addaction name="menu_Load"/>
     <addaction name="menu_Save"/>
+    <addaction name="action_open_res_dir"/>
+    <addaction name="action_open_vis_dir"/>
    </widget>
    <widget class="QMenu" name="menu_preferences">
     <property name="title">
@@ -154,6 +156,16 @@
   <action name="action_open_settings">
    <property name="text">
     <string>Open settings panel</string>
+   </property>
+  </action>
+  <action name="action_open_res_dir">
+   <property name="text">
+    <string>Open results directory</string>
+   </property>
+  </action>
+  <action name="action_open_vis_dir">
+   <property name="text">
+    <string>Open visualizations directory</string>
    </property>
   </action>
  </widget>
