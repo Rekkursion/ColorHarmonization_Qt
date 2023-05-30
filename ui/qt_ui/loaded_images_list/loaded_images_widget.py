@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import cv2
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
@@ -12,7 +15,7 @@ from enums.dialog_status import DialogStatus
 from enums.process_status import ProcessStatus
 from loaded_image_obj import LoadedImagesDict
 from ui.qt_ui.harmonization_config_panel.harmonization_config_panel import HarmonizationConfigPanel
-from utils.general_utils import gut_get_ext, gut_replace_ext
+from utils.general_utils import gut_get_ext, gut_load_image, gut_replace_ext
 from utils.harmonization_utils import hut_map_template_type
 
 
@@ -62,10 +65,15 @@ class LoadedImagesWidget(QWidget):
         """)
         self.btn_start_process = QPushButton('Start process')
         self.btn_save_processed = QPushButton('Save the processed image to...')
+        self.btn_super_resolution = QPushButton('Super resolution')
+        self.btn_save_processed_sr = QPushButton('Save the SR\'d image to...')
         self.hbox_thr = QHBoxLayout()
         self.hbox_thr.addWidget(self.btn_show_img, 0)
         self.hbox_thr.addWidget(self.btn_start_process, 1)
         self.hbox_thr.addWidget(self.btn_save_processed, 1)
+        self.hbox_thr.addWidget(QLabel(' | '), 0)
+        self.hbox_thr.addWidget(self.btn_super_resolution, 1)
+        self.hbox_thr.addWidget(self.btn_save_processed_sr, 1)
 
         # for containing all widgets
         self.vbox_all = QVBoxLayout()
@@ -78,8 +86,10 @@ class LoadedImagesWidget(QWidget):
         menu = QMenu()
         self.action_show_orig = QAction('Show the original image', self)
         self.action_show_proc = QAction('Show the processed image', self)
+        self.action_show_proc_sr = QAction('Show the processed image (after super resolution)', self)
         menu.addAction(self.action_show_orig)
         menu.addAction(self.action_show_proc)
+        menu.addAction(self.action_show_proc_sr)
         self.btn_show_img.setMenu(menu)
 
         # disable all buttons from the beginning (they will be enabled until its process is done)
@@ -87,7 +97,10 @@ class LoadedImagesWidget(QWidget):
         self.btn_show_img.setDisabled(True)
         self.btn_start_process.setDisabled(True)
         self.btn_save_processed.setDisabled(True)
+        self.btn_super_resolution.setDisabled(True)
+        self.btn_save_processed_sr.setDisabled(True)
         self.action_show_proc.setDisabled(True)
+        self.action_show_proc_sr.setDisabled(True)
 
         # initially change the text-color of the lbl-status
         self.process_status = ProcessStatus.LOADING
@@ -101,12 +114,16 @@ class LoadedImagesWidget(QWidget):
         self.action_show_orig.triggered.connect(lambda: cv2.imshow(f'|{self.win_name}|', LoadedImagesDict.get_original_image(self.win_name)))
         # show the processed image
         self.action_show_proc.triggered.connect(lambda: cv2.imshow(self.win_name, LoadedImagesDict.get_processed_image(self.win_name)))
+        self.action_show_proc_sr.triggered.connect(lambda: cv2.imshow(self.win_name, gut_load_image(LoadedImagesDict.get_sr_out_path(self.win_name))))
         # open the configuration panel
         self.btn_configurate.clicked.connect(self.action_pop_up_configuration_panel)
         # start process (color harmonization)
         self.btn_start_process.clicked.connect(self.action_start_process)
+        # apply super-resolution on the processed image
+        self.btn_super_resolution.clicked.connect(self.action_super_resolution)
         # save the processed image
         self.btn_save_processed.clicked.connect(self.action_save_processed_image)
+        self.btn_save_processed_sr.clicked.connect(self.action_save_processed_image_sr)
 
     # notify the status when the image-process is changed
     def notify_status_change(self, status):
@@ -127,12 +144,14 @@ class LoadedImagesWidget(QWidget):
         elif status in (ProcessStatus.WAITING, ProcessStatus.PROCESSING,):
             self.btn_configurate.setEnabled(False)
             self.btn_start_process.setEnabled(False)
+            self.btn_super_resolution.setEnabled(False)
             self.btn_save_processed.setEnabled(False)
             self.action_show_proc.setEnabled(False)
         # if the process is done
         elif status == ProcessStatus.DONE:
             self.btn_configurate.setEnabled(True)
             self.btn_start_process.setEnabled(True)
+            self.btn_super_resolution.setEnabled(True)
             self.btn_save_processed.setEnabled(True)
             self.action_show_proc.setEnabled(True)
             # initially show the size of the processed image (although it's still the same as the original one)
@@ -180,6 +199,32 @@ class LoadedImagesWidget(QWidget):
         self.log_writer(msg, msg_color)
         self.notify_status_change(process_status)
     
+    # https://github.com/xinntao/Real-ESRGAN
+    def action_super_resolution(self):
+        self.notify_status_change(ProcessStatus.PROCESSING)
+        # deal w/ paths
+        saved_path = Path(LoadedImagesDict.get_save_path(self.win_name))
+        sr_out_dir = str(saved_path.parent)
+        sr_out_path = os.path.join(sr_out_dir, f'{saved_path.stem}_sr{saved_path.suffix}')
+        # update the save-path of the sr'd image
+        LoadedImagesDict.update_sr_out_path(self.win_name, sr_out_path)
+        # determine the outscale
+        outscale = int(1. / self.process_cfg['resize_ratio']) + 1
+        # apply super resolution
+        return_code = os.system(f'python ./Real-ESRGAN/inference_realesrgan.py -n RealESRGAN_x4plus -i \"{str(saved_path)}\" -o \"{sr_out_dir}\" -s {outscale} --suffix sr --fp32 ')
+        if return_code == 0:
+            # make sure the sr'd image has the same size as the raw one
+            sr, raw = gut_load_image(sr_out_path), LoadedImagesDict.get_original_image(self.win_name)
+            if sr.shape != raw.shape:
+                sr = cv2.resize(sr, (raw.shape[1], raw.shape[0],))
+                cv2.imwrite(sr_out_path, sr)
+            sr, raw = gut_load_image(sr_out_path), LoadedImagesDict.get_original_image(self.win_name)
+            self.action_show_proc_sr.setEnabled(True)
+            self.log_writer(f'The SR\'d (scale={outscale}) image has been saved to <i>{sr_out_path}</i>.', Colors.LOG_PROCESS_DONE)
+            self.notify_status_change(ProcessStatus.DONE)
+            self.btn_super_resolution.setEnabled(False)
+            self.btn_save_processed_sr.setEnabled(True)
+    
     # the action of saving the processed image
     def action_save_processed_image(self):
         # activate the save-file-dialog and get the filename and the file type selected by the user
@@ -198,6 +243,24 @@ class LoadedImagesWidget(QWidget):
             # write a log
             if self.log_writer is not None:
                 self.log_writer(f'The processed image <i>{self.win_name}</i> has been saved to the designated location.', Colors.LOG_IMAGE_SAVED)
+    
+    def action_save_processed_image_sr(self):
+        # activate the save-file-dialog and get the filename and the file type selected by the user
+        filename, file_type = QFileDialog.getSaveFileName(
+            parent=self,
+            caption='Save the SR\'d image',
+            filter='All (*);;JPG (*.jpg *.jpeg);;PNG (*.png);;BMP (*.bmp)'
+        )
+        # make sure the filename is NOT empty (the user clicked the 'save' button in the file-dialog)
+        if filename != '':
+            # if the type is ALL, automatically determines the extension w/ the original one
+            if file_type == 'All (*)' and gut_get_ext(filename) == '':
+                filename = gut_replace_ext(filename, gut_get_ext(self.win_name))
+            # write the image into the file w/ the designated filename
+            cv2.imwrite(filename, gut_load_image(LoadedImagesDict.get_sr_out_path(self.win_name)))
+            # write a log
+            if self.log_writer is not None:
+                self.log_writer(f'The SR\'d image <i>{self.win_name}</i> has been saved to the designated location.', Colors.LOG_IMAGE_SAVED)
     
     @property
     def config_display_text(self):

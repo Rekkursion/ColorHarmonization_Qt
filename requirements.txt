@@ -1,17 +1,20 @@
-matplotlib
-networkx
-opencv-python
-pyqt5
-scipy
-# contourpy # Installed as dependency for matplotlib
-# cycler # Installed as dependency for matplotlib
-# fonttools # Installed as dependency for matplotlib
-# kiwisolver # Installed as dependency for matplotlib
-# numpy # Installed as dependency for contourpy, matplotlib, opencv-python, scipy
-# packaging # Installed as dependency for matplotlib
-# pillow # Installed as dependency for matplotlib
-# pyparsing # Installed as dependency for matplotlib
-# pyqt5-qt5 # Installed as dependency for pyqt5
-# pyqt5-sip # Installed as dependency for pyqt5
-# python-dateutil # Installed as dependency for matplotlib
-# six # Installed as dependency for python-dateutil
+matplotlib==3.7.1
+networkx==3.1
+opencv-python==4.7.0.72
+pip-chill==1.0.3
+pyqt5==5.15.2
+pyqt5-stubs==5.14.2.2
+scipy==1.10.1
+# contourpy==1.0.7 # Installed as dependency for matplotlib
+# cycler==0.11.0 # Installed as dependency for matplotlib
+# fonttools==4.39.4 # Installed as dependency for matplotlib
+# importlib-resources==5.12.0 # Installed as dependency for matplotlib
+# kiwisolver==1.4.4 # Installed as dependency for matplotlib
+# numpy==1.24.3 # Installed as dependency for contourpy, matplotlib, opencv-python, scipy
+# packaging==23.1 # Installed as dependency for matplotlib
+# pillow==9.5.0 # Installed as dependency for matplotlib
+# pyparsing==3.0.9 # Installed as dependency for matplotlib
+# pyqt5-sip==12.8.1 # Installed as dependency for pyqt5
+# python-dateutil==2.8.2 # Installed as dependency for matplotlib
+# six==1.16.0 # Installed as dependency for python-dateutil
+# zipp==3.15.0 # Installed as dependency for importlib-resources

@@ -13,9 +13,27 @@ class LoadedImagesDict:
     # the dictionary of all loaded images
     # key, value: win_name, loaded-image-info
     loaded_images = dict()
+    saved_paths = dict()
+    sr_out_paths = dict()
 
     def __init__(self):
         pass
+
+    @classmethod
+    def update_sr_out_path(self, win_name, sr_out_path):
+        self.sr_out_paths[win_name] = str(sr_out_path)
+
+    @classmethod
+    def get_sr_out_path(self, win_name):
+        return self.sr_out_paths[win_name]
+
+    @classmethod
+    def update_save_path(self, win_name, save_path):
+        self.saved_paths[win_name] = str(save_path)
+
+    @classmethod
+    def get_save_path(self, win_name):
+        return self.saved_paths[win_name]
 
     # add a new processed image
     @classmethod

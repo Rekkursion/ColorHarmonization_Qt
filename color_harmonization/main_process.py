@@ -83,6 +83,7 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, 
             save_vis_path = Path(GlobalConfigPanel.save_vis_dir, fname)
             save_res_path.parent.mkdir(parents=True, exist_ok=True)
             save_vis_path.parent.mkdir(parents=True, exist_ok=True)
+            LoadedImagesDict.update_save_path(win_name, str(save_res_path))
 
             # do color harmonization
             harmonized = harmonize.harmonize(
