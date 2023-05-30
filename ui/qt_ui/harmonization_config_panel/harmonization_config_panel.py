@@ -4,9 +4,11 @@ import cv2
 from PyQt5.QtCore import QSize, Qt
 from PyQt5.QtGui import QFont, QIcon, QPixmap
 from PyQt5.QtWidgets import (
-    QButtonGroup, QDialog, QGridLayout, QHBoxLayout, QLabel, QPushButton, QRadioButton, QSlider, QVBoxLayout,
+    QButtonGroup, QDialog, QFileDialog, QGridLayout, QHBoxLayout,
+    QLabel, QPushButton, QRadioButton, QSlider, QVBoxLayout,
 )
 
+from enums.colors import Colors
 from enums.dialog_status import DialogStatus
 from utils.general_utils import gut_load_image
 from utils.harmonization_utils import hut_map_template_type
@@ -25,6 +27,8 @@ class HarmonizationConfigPanel(QDialog):
         
         self.resize_ratio = kwargs.get('resize_ratio', 1.)
         self.templ_type = kwargs.get('template_type', 0)
+        self.ref_im_fpath = kwargs.get('ref_im_fpath', None)
+        self.__tmp_ref_im_fpath = kwargs.get('ref_im_fpath', None)
 
         self.dialog_status = DialogStatus.DISPLAYING
         self.setFont(QFont('Consolas', 12))
@@ -77,11 +81,27 @@ class HarmonizationConfigPanel(QDialog):
         pixm_im = QPixmap(win_name)
         pixm_im = pixm_im.scaled(300, 300, Qt.KeepAspectRatio)
         self.lbl_display_im.setPixmap(pixm_im)
+
+        # for reference image
+        self.btn_sel_ref_im = QPushButton('Select a reference image (optional)')
+        self.lbl_display_ref_im = QLabel()
+        if self.ref_im_fpath is not None:
+            pixm_ref_im = QPixmap(self.ref_im_fpath)
+            pixm_ref_im = pixm_ref_im.scaled(300, 300, Qt.KeepAspectRatio)
+            self.lbl_display_ref_im.setPixmap(pixm_ref_im)
+        self.vbox_ref_im = QVBoxLayout()
+        self.vbox_ref_im.addWidget(self.btn_sel_ref_im, 0)
+        self.vbox_ref_im.addWidget(self.lbl_display_ref_im, 0)
+
+        self.hbox_im_and_ref_im = QHBoxLayout()
+        self.hbox_im_and_ref_im.addWidget(self.lbl_display_im, 0)
+        self.hbox_im_and_ref_im.addLayout(self.vbox_ref_im, 0)
         
         # display all widgets
         self.vbox_all = QVBoxLayout()
         self.vbox_all.addWidget(QLabel(win_name), 1)
-        self.vbox_all.addWidget(self.lbl_display_im, 0)
+        # self.vbox_all.addWidget(self.lbl_display_im, 0)
+        self.vbox_all.addLayout(self.hbox_im_and_ref_im, 0)
         self.vbox_all.addLayout(self.grid_icons, 1)
         self.vbox_all.addLayout(self.hbox_slider, 1)
         self.vbox_all.addLayout(self.hbox_buttons, 1)
@@ -99,6 +119,7 @@ class HarmonizationConfigPanel(QDialog):
         self.sld_resize_ratio.valueChanged.connect(self.action_set_resize_ratio)
         self.btn_apply.clicked.connect(self.action_apply)
         self.btn_cancel.clicked.connect(self.action_cancel)
+        self.btn_sel_ref_im.clicked.connect(self.action_select_reference_image)
     
     def action_set_resize_ratio(self):
         ratio = self.sld_resize_ratio.value() / 20.
@@ -108,9 +129,24 @@ class HarmonizationConfigPanel(QDialog):
     def action_apply(self):
         self.resize_ratio = self.sld_resize_ratio.value() / 20.
         self.templ_type = self.grp_icons.checkedId()
+        self.ref_im_fpath = self.__tmp_ref_im_fpath
         self.dialog_status = DialogStatus.ACCEPTED
         self.accept()
     
     def action_cancel(self):
         self.dialog_status = DialogStatus.CANCELED
         self.close()
+    
+    def action_select_reference_image(self):
+        # open the file-dialog and get the reference image's filename
+        self.__tmp_ref_im_fpath, _ = QFileDialog.getOpenFileName(
+            parent=self,
+            caption='Select a reference image (optional)',
+            filter='Image Files (*.jpg *.jpeg *.png *bmp)',
+        )
+        if self.__tmp_ref_im_fpath == '' or not os.path.isfile(self.__tmp_ref_im_fpath):
+            self.__tmp_ref_im_fpath = None
+        else:
+            pixm_ref_im = QPixmap(self.__tmp_ref_im_fpath)
+            pixm_ref_im = pixm_ref_im.scaled(300, 300, Qt.KeepAspectRatio)
+            self.lbl_display_ref_im.setPixmap(pixm_ref_im)

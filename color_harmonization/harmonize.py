@@ -154,6 +154,8 @@ def harmonize(
         templ: HarmonicTemplate_Base,
         vis_save_path,
         result_save_path,
+        ref_im=None,
+        ref_hsv=None,
         _lambda=.5,
         mode='graph_cut',
         **_,
@@ -164,14 +166,20 @@ def harmonize(
     vis_parent, vis_stem, vis_ext = vis_save_path.parent, vis_save_path.stem, vis_save_path.suffix
 
     # get the histogram on hues (hue: 0 - 180, sat: 0 - 255, val: 0 - 255,)
-    hue_hist = _calc_hue_histogram(hsv)
-    # visualize the histogram
-    hut_visualize_histogram(hue_hist, templ, 0., raw_im, save_path=str(vis_parent / f'{vis_stem}_1-raw{vis_ext}'), show=False)
+    if ref_im is None:
+        hue_hist = _calc_hue_histogram(hsv)
+        hut_visualize_histogram(hue_hist, templ, 0., raw_im, save_path=str(vis_parent / f'{vis_stem}_1-raw{vis_ext}'), show=False)
+    else:
+        hue_hist = _calc_hue_histogram(ref_hsv)
+        hut_visualize_histogram(hue_hist, templ, 0., ref_im, save_path=str(vis_parent / f'{vis_stem}_1-raw{vis_ext}'), show=False)
 
     # search for the best alpha
-    alpha = _search_alpha_value(hsv, templ)
-    # templ.rotate_sectors(alpha)
-    hut_visualize_histogram(hue_hist, templ, alpha, raw_im, save_path=str(vis_parent / f'{vis_stem}_2-sectors-rotated{vis_ext}'), show=False)
+    if ref_im is None:
+        alpha = _search_alpha_value(hsv, templ)
+        hut_visualize_histogram(hue_hist, templ, alpha, raw_im, save_path=str(vis_parent / f'{vis_stem}_2-sectors-rotated{vis_ext}'), show=False)
+    else:
+        alpha = _search_alpha_value(ref_hsv, templ)
+        hut_visualize_histogram(hue_hist, templ, alpha, ref_im, save_path=str(vis_parent / f'{vis_stem}_2-sectors-rotated{vis_ext}'), show=False)
 
     # pre-select the nearest borders of sectors
     V, D = _find_closest_borders_of_sectors_naively(hsv, templ, alpha)
@@ -197,14 +205,20 @@ def harmonize(
     ratio = vis_h / raw_hist_vis.shape[0]
     raw_hist_vis = gut_resize_by_ratio(raw_hist_vis, ratio=ratio)
     new_hist_vis = gut_resize_by_ratio(new_hist_vis, ratio=ratio)
-    if vis_h != raw_im.shape[0]:
-        raw_im = cv2.resize(raw_im, (int(raw_hist_vis.shape[0] / raw_im.shape[0] * raw_im.shape[1]), raw_hist_vis.shape[0],))
-        new_im = cv2.resize(new_im, (int(raw_hist_vis.shape[0] / new_im.shape[0] * new_im.shape[1]), raw_hist_vis.shape[0],))
-    raw_im = hut_add_opaque_channel(raw_im)
+    if ref_im is None:
+        if vis_h != raw_im.shape[0]:
+            raw_im = cv2.resize(raw_im, (int(raw_hist_vis.shape[0] / raw_im.shape[0] * raw_im.shape[1]), raw_hist_vis.shape[0],))
+            new_im = cv2.resize(new_im, (int(raw_hist_vis.shape[0] / new_im.shape[0] * new_im.shape[1]), raw_hist_vis.shape[0],))
+        raw_im = hut_add_opaque_channel(raw_im)
+    else:
+        if vis_h != ref_im.shape[0]:
+            ref_im = cv2.resize(ref_im, (int(raw_hist_vis.shape[0] / ref_im.shape[0] * ref_im.shape[1]), raw_hist_vis.shape[0],))
+            new_im = cv2.resize(new_im, (int(raw_hist_vis.shape[0] / new_im.shape[0] * new_im.shape[1]), raw_hist_vis.shape[0],))
+        ref_im = hut_add_opaque_channel(ref_im)
     new_im = hut_add_opaque_channel(new_im)
     final_vis = np.vstack((
-        np.hstack((raw_hist_vis, raw_im,)),
-        hut_add_opaque_channel(np.zeros((10, raw_hist_vis.shape[1] + raw_im.shape[1], 3,), dtype=np.uint8)),
+        np.hstack((raw_hist_vis, raw_im if ref_im is None else ref_im,)),
+        hut_add_opaque_channel(np.zeros((10, raw_hist_vis.shape[1] + (raw_im.shape[1] if ref_im is None else ref_im.shape[1]), 3,), dtype=np.uint8)),
         np.hstack((new_hist_vis, new_im,)),
     ))
     cv2.imwrite(str(vis_parent / f'{vis_stem}_4-final{vis_ext}'), final_vis)

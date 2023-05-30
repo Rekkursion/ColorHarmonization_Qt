@@ -10,6 +10,7 @@ from enums.colors import Colors
 from enums.process_status import ProcessStatus
 from loaded_image_obj import LoadedImagesDict
 from ui.qt_ui.global_config_panel.global_config_panel import GlobalConfigPanel
+from utils.general_utils import gut_load_image
 from utils.harmonization_utils import hut_convert_image_into_hsv_w_resizing, hut_map_template_type
 
 
@@ -34,7 +35,7 @@ class ProcessThread(QtCore.QThread):
 
 
 # start doing the color harmonization
-def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type):
+def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, ref_im_fpath=None):
     if img is None:
         return
     if widget.process_status in (ProcessStatus.ERROR, ProcessStatus.LOADING, ProcessStatus.PROCESSING,):
@@ -57,6 +58,15 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type):
             
             # convert the image into hsv color space also apply resizing
             resized_im, hsv = hut_convert_image_into_hsv_w_resizing(img, ratio=resize_ratio)
+            if ref_im_fpath is not None:
+                ref_im = gut_load_image(ref_im_fpath)
+                ref_im = cv2.resize(ref_im, (resized_im.shape[1], resized_im.shape[0],))
+                ref_im, ref_hsv = hut_convert_image_into_hsv_w_resizing(ref_im)
+                print(f'| REF = {ref_im_fpath} | ', end='')
+            else:
+                ref_im, ref_hsv = None, None
+                print(f'| REF = NONE | ', end='')
+
             # choose a harmonic template
             t_type = hut_map_template_type(template_type)
             try:
@@ -79,6 +89,8 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type):
                 resized_im, hsv, templ,
                 vis_save_path=save_vis_path,
                 result_save_path=save_res_path,
+                ref_im=ref_im,
+                ref_hsv=ref_hsv,
             )
             # update the processed image
             LoadedImagesDict.update_processed_image(win_name, harmonized)

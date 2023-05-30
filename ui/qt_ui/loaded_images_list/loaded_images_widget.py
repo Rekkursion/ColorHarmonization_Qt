@@ -23,6 +23,7 @@ class LoadedImagesWidget(QWidget):
         self.process_cfg = {
             'resize_ratio': 1.,
             'template_type': 0,
+            'ref_im_fpath': None,
         }
         # the window name and the image
         self.win_name = win_name
@@ -152,6 +153,7 @@ class LoadedImagesWidget(QWidget):
         if cfg_panel.dialog_status == DialogStatus.ACCEPTED:
             self.process_cfg['resize_ratio'] = cfg_panel.resize_ratio
             self.process_cfg['template_type'] = cfg_panel.templ_type
+            self.process_cfg['ref_im_fpath'] = cfg_panel.ref_im_fpath
             self.lbl_show_config.setText(self.config_display_text)
             self.lbl_size.setText(self.im_size_display_text)
             self.log_writer(f'Configuration for <i>{self.win_name}</i> is updated.')
@@ -201,9 +203,12 @@ class LoadedImagesWidget(QWidget):
     def config_display_text(self):
         r = self.process_cfg['resize_ratio']
         t = hut_map_template_type(self.process_cfg['template_type'])
-        return f'Current configuration: {"{"} ' + \
+        ref = self.process_cfg['ref_im_fpath']
+        return f' {"{"} ' + \
                f'Resize-ratio: <span style="color: red;"><strong>{r:.2f}</strong></span>, ' + \
-               f'Template: <span style="color: red;"><strong>{t}</strong></span>-type {"}"}'
+               f'Template: <span style="color: red;"><strong>{t}</strong></span>-type, ' + \
+               'Ref.: {}'.format('NONE' if ref is None else f'<span style="color: red;"><strong>{ref}</strong></span>') + \
+               f' {"}"}'
     
     @property
     def im_size_display_text(self):
