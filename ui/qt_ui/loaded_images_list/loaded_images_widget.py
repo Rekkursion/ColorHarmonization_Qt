@@ -127,11 +127,13 @@ class LoadedImagesWidget(QWidget):
             self.btn_configurate.setEnabled(False)
             self.btn_start_process.setEnabled(False)
             self.btn_save_processed.setEnabled(False)
+            self.action_show_proc.setEnabled(False)
         # if the process is done
         elif status == ProcessStatus.DONE:
             self.btn_configurate.setEnabled(True)
             self.btn_start_process.setEnabled(True)
             self.btn_save_processed.setEnabled(True)
+            self.action_show_proc.setEnabled(True)
             # initially show the size of the processed image (although it's still the same as the original one)
             self.notify_size_change()
 

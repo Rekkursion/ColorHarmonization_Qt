@@ -128,6 +128,8 @@ def _apply_graph_cut(hsv, templ: HarmonicTemplate_Base, alpha, _lambda, V, D):
     gaussian_fn = lambda x, mu, sigma: 1. / (np.sqrt(2. * np.pi) * sigma) * np.exp(-np.power((x - mu) / sigma, 2.) / 2.)
     ret_hsv = copy.deepcopy(hsv)
     for (y, x,), hue in np.ndenumerate(hsv[:, :, 0]):
+        if templ.is_in(hue, alpha)[0]:
+            continue
         id = y * hsv.shape[1] + x
         assert (id in reachable) ^ (id in non_reachable)
         if id in reachable:
@@ -137,7 +139,7 @@ def _apply_graph_cut(hsv, templ: HarmonicTemplate_Base, alpha, _lambda, V, D):
         
         c = sect.centre_of_arc + alpha
         w = sect.arc_len
-        g = gaussian_fn(hut_calc_arc_len(hue, c), mu=0., sigma=.1)
+        g = gaussian_fn(hut_calc_arc_len(hue, c), mu=0., sigma=1.)
 
         new_hue = int(c + (w / 2.) * (1. - g))
         ret_hsv[y, x, 0] = new_hue
