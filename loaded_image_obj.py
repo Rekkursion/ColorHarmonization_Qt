@@ -25,7 +25,7 @@ class LoadedImagesDict:
 
     @classmethod
     def get_sr_out_path(self, win_name):
-        return self.sr_out_paths[win_name]
+        return self.sr_out_paths.get(win_name, None)
 
     @classmethod
     def update_save_path(self, win_name, save_path):

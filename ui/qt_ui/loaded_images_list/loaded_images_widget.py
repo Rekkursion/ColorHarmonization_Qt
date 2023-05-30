@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import cv2
+import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtWidgets import (
@@ -16,7 +17,7 @@ from enums.process_status import ProcessStatus
 from loaded_image_obj import LoadedImagesDict
 from ui.qt_ui.harmonization_config_panel.harmonization_config_panel import HarmonizationConfigPanel
 from utils.general_utils import gut_get_ext, gut_load_image, gut_replace_ext
-from utils.harmonization_utils import hut_map_template_type
+from utils.harmonization_utils import hut_add_opaque_channel, hut_map_template_type
 
 
 class LoadedImagesWidget(QWidget):
@@ -87,9 +88,11 @@ class LoadedImagesWidget(QWidget):
         self.action_show_orig = QAction('Show the original image', self)
         self.action_show_proc = QAction('Show the processed image', self)
         self.action_show_proc_sr = QAction('Show the processed image (after super resolution)', self)
+        self.action_show_comparison_btn = QAction('Show the comparison', self)
         menu.addAction(self.action_show_orig)
         menu.addAction(self.action_show_proc)
         menu.addAction(self.action_show_proc_sr)
+        menu.addAction(self.action_show_comparison_btn)
         self.btn_show_img.setMenu(menu)
 
         # disable all buttons from the beginning (they will be enabled until its process is done)
@@ -101,6 +104,7 @@ class LoadedImagesWidget(QWidget):
         self.btn_save_processed_sr.setDisabled(True)
         self.action_show_proc.setDisabled(True)
         self.action_show_proc_sr.setDisabled(True)
+        self.action_show_comparison_btn.setDisabled(True)
 
         # initially change the text-color of the lbl-status
         self.process_status = ProcessStatus.LOADING
@@ -115,6 +119,7 @@ class LoadedImagesWidget(QWidget):
         # show the processed image
         self.action_show_proc.triggered.connect(lambda: cv2.imshow(self.win_name, LoadedImagesDict.get_processed_image(self.win_name)))
         self.action_show_proc_sr.triggered.connect(lambda: cv2.imshow(self.win_name, gut_load_image(LoadedImagesDict.get_sr_out_path(self.win_name))))
+        self.action_show_comparison_btn.triggered.connect(self.action_show_comparison)
         # open the configuration panel
         self.btn_configurate.clicked.connect(self.action_pop_up_configuration_panel)
         # start process (color harmonization)
@@ -147,6 +152,7 @@ class LoadedImagesWidget(QWidget):
             self.btn_super_resolution.setEnabled(False)
             self.btn_save_processed.setEnabled(False)
             self.action_show_proc.setEnabled(False)
+            self.action_show_comparison_btn.setEnabled(False)
         # if the process is done
         elif status == ProcessStatus.DONE:
             self.btn_configurate.setEnabled(True)
@@ -154,6 +160,7 @@ class LoadedImagesWidget(QWidget):
             self.btn_super_resolution.setEnabled(True)
             self.btn_save_processed.setEnabled(True)
             self.action_show_proc.setEnabled(True)
+            self.action_show_comparison_btn.setEnabled(True)
             # initially show the size of the processed image (although it's still the same as the original one)
             self.notify_size_change()
 
@@ -224,6 +231,7 @@ class LoadedImagesWidget(QWidget):
             self.notify_status_change(ProcessStatus.DONE)
             self.btn_super_resolution.setEnabled(False)
             self.btn_save_processed_sr.setEnabled(True)
+            self.action_show_comparison_btn.setEnabled(True)
     
     # the action of saving the processed image
     def action_save_processed_image(self):
@@ -262,6 +270,26 @@ class LoadedImagesWidget(QWidget):
             if self.log_writer is not None:
                 self.log_writer(f'The SR\'d image <i>{self.win_name}</i> has been saved to the designated location.', Colors.LOG_IMAGE_SAVED)
     
+    def action_show_comparison(self):
+        raw = LoadedImagesDict.get_original_image(self.win_name)
+        aft = LoadedImagesDict.get_sr_out_path(self.win_name)
+        if aft is None:
+            aft = LoadedImagesDict.get_processed_image(self.win_name)
+            if aft.shape[-1] == 4:
+                aft = cv2.cvtColor(aft, cv2.COLOR_BGRA2BGR)
+            if aft.shape[0] < raw.shape[0]:
+                d = raw.shape[0] - aft.shape[0]
+                aft = np.concatenate((aft, np.zeros((d, aft.shape[1], 3,), dtype=np.uint8),), axis=0)
+        else:
+            aft = gut_load_image(aft)
+            if aft.shape[-1] == 4:
+                aft = cv2.cvtColor(aft, cv2.COLOR_BGRA2BGR)
+        line = np.zeros((aft.shape[0], 2, 3,), dtype=np.uint8)
+        if raw.shape[-1] == 4:
+            raw = cv2.cvtColor(raw, cv2.COLOR_BGRA2BGR)
+        cv2.imshow(self.win_name, np.hstack((raw, line, aft,)))
+
+
     @property
     def config_display_text(self):
         r = self.process_cfg['resize_ratio']
