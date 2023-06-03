@@ -3,6 +3,8 @@
 + NTU CSIE 課程 ICG 2023 Term Project #13：Color Harmonization 之圖形使用者介面 Python 實作，含部分改進。作者：F09922184 許晉捷。
 + 2023 Spring, Iteractive Computer Graphics Term Project, F09922184 Chin-Chieh Hsu (許晉捷)
 + A third-party Python implementation with GUI of the paper **Color Harmonization** (https://dl.acm.org/doi/abs/10.1145/1179352.1141933) with user-friendly features and some refinement
++ Introduction to Color Harmonization (Google Slides):
+    + https://docs.google.com/presentation/d/1flpqVetunF4u45N0L_M5hjcgTPlmym2C/edit?usp=sharing&ouid=108114821901174243032&rtpof=true&sd=true
 
 # 貢獻
 
