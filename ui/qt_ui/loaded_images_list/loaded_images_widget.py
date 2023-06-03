@@ -297,7 +297,7 @@ class LoadedImagesWidget(QWidget):
         ref = self.process_cfg['ref_im_fpath']
         return f' {"{"} ' + \
                f'Resize-ratio: <span style="color: red;"><strong>{r:.2f}</strong></span>, ' + \
-               f'Template: <span style="color: red;"><strong>{t}</strong></span>-type, ' + \
+               f'Template: <span style="color: red;"><strong>{t}</strong></span>{"" if t == "AUTO" else "-type"}, ' + \
                'Ref.: {}'.format('NONE' if ref is None else f'<span style="color: red;"><strong>{ref}</strong></span>') + \
                f' {"}"}'
     

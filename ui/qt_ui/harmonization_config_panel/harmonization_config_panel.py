@@ -53,6 +53,12 @@ class HarmonizationConfigPanel(QDialog):
                 rdb_template_type.setChecked(True)
             self.grp_icons.addButton(rdb_template_type, k)
             self.grid_icons.addWidget(rdb_template_type, k // 4, k % 4)
+        # auto: the program will run all template types, find 7 alphas, and eventually choose the best one
+        rdb_template_type_auto = QRadioButton('AUTO')
+        self.grp_icons.addButton(rdb_template_type_auto, 7)
+        self.grid_icons.addWidget(rdb_template_type_auto, 7 // 4, 7 % 4)
+        if 7 == self.templ_type:
+            rdb_template_type_auto.setChecked(True)
 
         # the slider for resize ratio
         self.lbl_slider = QLabel('Resize ratio ')

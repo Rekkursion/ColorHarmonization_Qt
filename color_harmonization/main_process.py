@@ -11,7 +11,7 @@ from enums.process_status import ProcessStatus
 from loaded_image_obj import LoadedImagesDict
 from ui.qt_ui.global_config_panel.global_config_panel import GlobalConfigPanel
 from utils.general_utils import gut_load_image
-from utils.harmonization_utils import hut_convert_image_into_hsv_w_resizing, hut_map_template_type
+from utils.harmonization_utils import hut_convert_image_into_hsv_w_resizing, hut_map_template_type, TEMPL_TYPES_MAPPING
 
 
 _PROCESS_LOCK = Lock()
@@ -68,14 +68,17 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, 
                 print(f'| REF = NONE | ', end='')
 
             # choose a harmonic template
-            t_type = hut_map_template_type(template_type)
-            try:
-                templ = getattr(harmonic_template, f'Template_{t_type}')()
-            except AttributeError:
-                print(f'No such template (type-{t_type}) existed.')
+            types_list = tuple(range(7)) if template_type == 7 else (template_type,)
+            templ_list = []
+            for _t in types_list:
+                t_type = hut_map_template_type(_t)
+                try:
+                    templ_list.append(getattr(harmonic_template, f'Template_{t_type}')())
+                except AttributeError:
+                    print(f'No such template (type-{t_type}) existed.', end='')
             
             print(f'| SHAPE (AFT RSZ) = {hsv.shape} | '
-                  f'# PIXELS = {hsv.shape[0] * hsv.shape[1]} | TEMPLATE-TYPE = {t_type} |')
+                  f'# PIXELS = {hsv.shape[0] * hsv.shape[1]} | TEMPLATE-TYPE = {"AUTO" if template_type == 7 else t_type} |')
             
             # tackle w/ paths
             fname = f'{Path(win_name).stem}_ratio={resize_ratio:.2f}_type={template_type}{Path(win_name).suffix}'
@@ -87,7 +90,7 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, 
 
             # do color harmonization
             harmonized = harmonize.harmonize(
-                resized_im, hsv, templ,
+                resized_im, hsv, templ_list,
                 vis_save_path=save_vis_path,
                 result_save_path=save_res_path,
                 ref_im=ref_im,

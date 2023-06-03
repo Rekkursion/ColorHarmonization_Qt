@@ -76,12 +76,16 @@ class HarmonicTemplate_Base:
                 min_dis = _dis
                 ret_sect = sector
         return hut_calc_arc_len(min_dis), copy.deepcopy(ret_sect)
-    
+
+
 # i-type
 class Template_i(HarmonicTemplate_Base):
     def __init__(self):
         super().__init__()
         self.add_sector(start_deg=-4.5, range_deg=9.)
+    
+    def __str__(self):
+        return 'i'
 
 
 # V-type
@@ -89,6 +93,9 @@ class Template_V(HarmonicTemplate_Base):
     def __init__(self):
         super().__init__()
         self.add_sector(start_deg=-23.4, range_deg=46.8)
+    
+    def __str__(self):
+        return 'V'
 
 
 # L-type
@@ -97,6 +104,9 @@ class Template_L(HarmonicTemplate_Base):
         super().__init__()
         self.add_sector(start_deg=-4.5, range_deg=9.)
         self.add_sector(start_deg=-23.4 + 45., range_deg=46.8)
+    
+    def __str__(self):
+        return 'L'
 
 
 # I-type
@@ -105,6 +115,9 @@ class Template_I(HarmonicTemplate_Base):
         super().__init__()
         self.add_sector(start_deg=-4.5, range_deg=9.)
         self.add_sector(start_deg=-4.5 + 90., range_deg=9.)
+    
+    def __str__(self):
+        return 'I'
 
 
 # T-type
@@ -112,6 +125,9 @@ class Template_T(HarmonicTemplate_Base):
     def __init__(self):
         super().__init__()
         self.add_sector(start_deg=0., range_deg=90.)
+    
+    def __str__(self):
+        return 'T'
 
 
 # Y-type
@@ -120,6 +136,9 @@ class Template_Y(HarmonicTemplate_Base):
         super().__init__()
         self.add_sector(start_deg=-23.4, range_deg=46.8)
         self.add_sector(start_deg=-4.5 + 90., range_deg=9.)
+    
+    def __str__(self):
+        return 'Y'
 
 
 # X-type
@@ -128,6 +147,9 @@ class Template_X(HarmonicTemplate_Base):
         super().__init__()
         self.add_sector(start_deg=-23.4, range_deg=46.8)
         self.add_sector(start_deg=-23.4 + 90., range_deg=46.8)
+    
+    def __str__(self):
+        return 'X'
 
 
 # no N-type implemented (nor discussed in the original paper)

@@ -4,7 +4,7 @@ import numpy as np
 from utils.general_utils import gut_resize_by_ratio
 
 
-TEMPL_TYPES_MAPPING = ('i', 'V', 'L', 'I', 'T', 'Y', 'X',)
+TEMPL_TYPES_MAPPING = ('i', 'V', 'L', 'I', 'T', 'Y', 'X', 'AUTO',)
 
 
 # map the template type as an integer into the respective character

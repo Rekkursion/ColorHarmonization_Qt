@@ -1,5 +1,6 @@
 import copy
 from pathlib import Path
+from typing import List
 
 import cv2
 import networkx as nx
@@ -30,7 +31,7 @@ def _calc_hue_histogram(hsv_im):
 
 # do an optimization for finding an alpha value that could minimize the distance
 def _search_alpha_value(hsv, templ: HarmonicTemplate_Base):
-    print('| Searching for ALPHA... |')
+    print('| Searching for ALPHA... ', end='')
     flattened_hsv = hsv.reshape(-1, 3)
     H = flattened_hsv[:, 0]
     S = flattened_hsv[:, 1]
@@ -39,8 +40,9 @@ def _search_alpha_value(hsv, templ: HarmonicTemplate_Base):
     x_root = scipy.optimize.brent(F, brack=(0., 180.,))
     x_root = hut_canonicalize_deg(x_root)
     # x_root = scipy.optimize.brentq(F, a=-180., b=180.)
-    print(f'| ALPHA = {x_root} (in the range of [0, 180]) |')
-    return x_root
+    f_val = F(x_root)
+    print(f'| ALPHA = {x_root:6.2f} (in the range of [0, 180]) | F-VALUE = {f_val:8.2f} |')
+    return x_root, f_val
 
 
 # naively find the closest borders of sectors (without the help of the graph-cut method)
@@ -151,7 +153,7 @@ def _apply_graph_cut(hsv, templ: HarmonicTemplate_Base, alpha, _lambda, V, D):
 def harmonize(
         raw_im,
         hsv,
-        templ: HarmonicTemplate_Base,
+        templ_list: List[HarmonicTemplate_Base],
         vis_save_path,
         result_save_path,
         ref_im=None,
@@ -168,17 +170,31 @@ def harmonize(
     # get the histogram on hues (hue: 0 - 180, sat: 0 - 255, val: 0 - 255,)
     if ref_im is None:
         hue_hist = _calc_hue_histogram(hsv)
-        hut_visualize_histogram(hue_hist, templ, 0., raw_im, save_path=str(vis_parent / f'{vis_stem}_1-raw{vis_ext}'), show=False)
     else:
         hue_hist = _calc_hue_histogram(ref_hsv)
-        hut_visualize_histogram(hue_hist, templ, 0., ref_im, save_path=str(vis_parent / f'{vis_stem}_1-raw{vis_ext}'), show=False)
 
-    # search for the best alpha
+    # search for the best alpha (and the best template, if the template-type is AUTO)
+    best_alpha, best_templ, min_objective_f_value = 0., None, float('inf')
+    for templ in templ_list:
+        if len(templ_list) > 1:
+            print(f'| TRYING THE TEMPLATE: {templ}-TYPE... |')
+        if ref_im is None:
+            alpha, f_val = _search_alpha_value(hsv, templ)
+        else:
+            alpha, f_val = _search_alpha_value(ref_hsv, templ)
+        if f_val < min_objective_f_value:
+            best_alpha = alpha
+            best_templ = templ
+            min_objective_f_value = f_val
+    alpha = best_alpha
+    templ = best_templ
+    if len(templ_list) > 1:
+        print(f'| The best alpha is {alpha:.2f} from the template {templ}-type w/ the minimal objective function value of {min_objective_f_value:.2f} |')
     if ref_im is None:
-        alpha = _search_alpha_value(hsv, templ)
+        hut_visualize_histogram(hue_hist, templ, 0., raw_im, save_path=str(vis_parent / f'{vis_stem}_1-raw{vis_ext}'), show=False)
         hut_visualize_histogram(hue_hist, templ, alpha, raw_im, save_path=str(vis_parent / f'{vis_stem}_2-sectors-rotated{vis_ext}'), show=False)
     else:
-        alpha = _search_alpha_value(ref_hsv, templ)
+        hut_visualize_histogram(hue_hist, templ, 0., ref_im, save_path=str(vis_parent / f'{vis_stem}_1-raw{vis_ext}'), show=False)
         hut_visualize_histogram(hue_hist, templ, alpha, ref_im, save_path=str(vis_parent / f'{vis_stem}_2-sectors-rotated{vis_ext}'), show=False)
 
     # pre-select the nearest borders of sectors
