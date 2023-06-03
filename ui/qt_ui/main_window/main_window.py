@@ -1,3 +1,5 @@
+import os
+
 from PyQt5 import uic
 from PyQt5.QtWidgets import QMainWindow
 
@@ -23,6 +25,8 @@ class MainWindow(QMainWindow):
         self.init_events()
         # the counter for counting the number of opened images via clipboard
         self.clipboard_counter = 0
+        # accept drag-n-drop files
+        self.setAcceptDrops(True)
 
     # initialize events
     def init_events(self):
@@ -47,3 +51,23 @@ class MainWindow(QMainWindow):
     def write_log(self, text, color=Colors.LOG_GENERAL):
         log = '<span style="color: rgb{};"> &gt; {}</span>'.format(str(color), f'<strong>{text}</strong>')
         self.log_area.append(log)
+
+    # https://gist.github.com/peace098beat/db8ef7161508e6500ebe
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasUrls():
+            event.accept()
+        else:
+            event.ignore()
+
+    def dropEvent(self, event):
+        file_paths = [u.toLocalFile() for u in event.mimeData().urls()]
+        for fpath in file_paths:
+            if os.path.isfile(fpath):
+                im = gut_load_image(fpath)
+                if im is not None:
+                    self.write_log(f'The image <i>{fpath}</i> has been loaded from local by drag-and-drop.', Colors.LOG_LOAD_IMAGE)
+                    self.finish_image_loading(fpath, im)
+                else:
+                    self.write_log(f'The file <i>{fpath}</i> is not a legal image.', Colors.LOG_ERROR)
+            else:
+                self.write_log(f'The path <i>{fpath}</i> is not a legal image file path.', Colors.LOG_ERROR)

@@ -8,7 +8,7 @@
 
 1. 第一個將此篇 paper 完整實作出來（網上找的到的 open source 都只有不完整的實作）。
 1. 第一個結合 GUI（圖形使用者介面）的實作，含多項完整且細緻的功能。
-    + 三種讀取影像的方法：from local, from URL, and from clipboard。
+    + 四種讀取影像的方法：from local, drag-and-drop（拖曳）, from URL, and from clipboard。
     + 針對每張影像提供 GUI 來調整參數設定。
     + 多執行緒（multithreading）執行演算法，不影響 GUI 操作。
     + 提供方便的原圖與結果的比較展示，效果如何一目瞭然。
