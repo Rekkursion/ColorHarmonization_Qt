@@ -49,3 +49,10 @@
 + Y. Y. Boykov and M. . -P. Jolly, "Interactive graph cuts for optimal boundary & region segmentation of objects in N-D images," Proceedings Eighth IEEE International Conference on Computer Vision. ICCV 2001, Vancouver, BC, Canada, 2001, pp. 105-112 vol.1, doi: 10.1109/ICCV.2001.937505.
 + X. Wang, L. Xie, C. Dong and Y. Shan, "Real-ESRGAN: Training Real-World Blind Super-Resolution with Pure Synthetic Data," 2021 IEEE/CVF International Conference on Computer Vision Workshops (ICCVW), Montreal, BC, Canada, 2021, pp. 1905-1914, doi: 10.1109/ICCVW54120.2021.00217.
 
+# Implementation-Related Reference
+
++ Super Resolution: https://github.com/xinntao/Real-ESRGAN
++ PyQt5 Drag-and-drop: https://gist.github.com/peace098beat/db8ef7161508e6500ebe
++ PyQt5 Open a directory in the file explorer: https://stackoverflow.com/questions/6631299/python-opening-a-folder-in-explorer-nautilus-finder
++ Brent's method: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.brent.html#scipy.optimize.brent
++ Minimum-cut: https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.flow.minimum_cut.html
