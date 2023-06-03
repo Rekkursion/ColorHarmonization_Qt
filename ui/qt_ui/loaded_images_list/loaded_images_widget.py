@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
 
 from color_harmonization.main_process import ProcessThread
 from color_harmonization.main_process import do_process as do_color_harmonization_process
+from color_harmonization.main_process import do_super_resolution_process
 from enums.colors import Colors
 from enums.dialog_status import DialogStatus
 from enums.process_status import ProcessStatus
@@ -202,36 +203,33 @@ class LoadedImagesWidget(QWidget):
         thread.start()
         return True
     
-    def singal_process_done_emitted(self, process_status, msg, msg_color):
+    def singal_process_done_emitted(self, process_status, msg, msg_color, done_callback):
         self.log_writer(msg, msg_color)
         self.notify_status_change(process_status)
+        if done_callback is not None:
+            done_callback()
     
     # https://github.com/xinntao/Real-ESRGAN
     def action_super_resolution(self):
-        self.notify_status_change(ProcessStatus.PROCESSING)
-        # deal w/ paths
-        saved_path = Path(LoadedImagesDict.get_save_path(self.win_name))
-        sr_out_dir = str(saved_path.parent)
-        sr_out_path = os.path.join(sr_out_dir, f'{saved_path.stem}_sr{saved_path.suffix}')
-        # update the save-path of the sr'd image
-        LoadedImagesDict.update_sr_out_path(self.win_name, sr_out_path)
-        # determine the outscale
-        outscale = int(1. / self.process_cfg['resize_ratio']) + 1
-        # apply super resolution
-        return_code = os.system(f'python ./Real-ESRGAN/inference_realesrgan.py -n RealESRGAN_x4plus -i \"{str(saved_path)}\" -o \"{sr_out_dir}\" -s {outscale} --suffix sr --fp32 ')
-        if return_code == 0:
-            # make sure the sr'd image has the same size as the raw one
-            sr, raw = gut_load_image(sr_out_path), LoadedImagesDict.get_original_image(self.win_name)
-            if sr.shape != raw.shape:
-                sr = cv2.resize(sr, (raw.shape[1], raw.shape[0],))
-                cv2.imwrite(sr_out_path, sr)
-            sr, raw = gut_load_image(sr_out_path), LoadedImagesDict.get_original_image(self.win_name)
+        # the callback function when the super resolution process is done
+        def __done_callback():
             self.action_show_proc_sr.setEnabled(True)
-            self.log_writer(f'The SR\'d (scale={outscale}) image has been saved to <i>{sr_out_path}</i>.', Colors.LOG_PROCESS_DONE)
+            # self.log_writer(f'The SR\'d (scale={outscale}) image has been saved to <i>{sr_out_path}</i>.', Colors.LOG_PROCESS_DONE)
             self.notify_status_change(ProcessStatus.DONE)
             self.btn_super_resolution.setEnabled(False)
             self.btn_save_processed_sr.setEnabled(True)
             self.action_show_comparison_btn.setEnabled(True)
+        
+        self.notify_status_change(ProcessStatus.PROCESSING)
+        thread = ProcessThread(
+            self,
+            target=do_super_resolution_process,
+            args=(self.win_name, __done_callback,),
+            kwargs=self.process_cfg,
+        )
+        thread.signal_process_done.connect(self.singal_process_done_emitted)
+        thread.start()
+        return True
     
     # the action of saving the processed image
     def action_save_processed_image(self):

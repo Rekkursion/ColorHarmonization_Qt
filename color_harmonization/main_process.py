@@ -1,5 +1,9 @@
+import os
 from pathlib import Path
 from threading import Lock
+# from typing import Callable
+# import typing
+from collections.abc import Callable
 
 import cv2
 from PyQt5 import QtCore
@@ -14,11 +18,17 @@ from utils.general_utils import gut_load_image
 from utils.harmonization_utils import hut_convert_image_into_hsv_w_resizing, hut_map_template_type, TEMPL_TYPES_MAPPING
 
 
+# the thread lock
 _PROCESS_LOCK = Lock()
 
 
+# the dummy function for singaling when the harmonization process is done
+def dummy_func():
+    pass
+
+
 class ProcessThread(QtCore.QThread):
-    signal_process_done = QtCore.pyqtSignal(ProcessStatus, str, tuple)
+    signal_process_done = QtCore.pyqtSignal(ProcessStatus, str, tuple, type(dummy_func))
 
     def __init__(self, parent, target, args, kwargs):
         super().__init__(parent)
@@ -34,7 +44,7 @@ class ProcessThread(QtCore.QThread):
         )
 
 
-# start doing the color harmonization
+# start doing the color harmonization process
 def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, ref_im_fpath=None):
     if img is None:
         return
@@ -46,6 +56,7 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, 
             ProcessStatus.WAITING,
             f'Waiting for another harmonization done for the selected one <i>{win_name}</i>.',
             Colors.LOG_WARNING,
+            dummy_func,
         )
     with _PROCESS_LOCK:
         try:
@@ -108,6 +119,7 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, 
                 ProcessStatus.DONE,
                 f'The process of the loaded image <i>{win_name}</i> has been done.',
                 Colors.LOG_PROCESS_DONE,
+                dummy_func,
             )
 
             # set the mouse callback to activate some user events
@@ -117,6 +129,36 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, 
                 ProcessStatus.ERROR,
                 f'Error happened when processing color harmonization on the image <i>{win_name}</i>: {e}',
                 Colors.LOG_ERROR,
+                dummy_func,
             )
     # wait for user's action to keep the cv-window
     cv2.waitKey(0)
+
+
+# start doing the super resolution process
+# (this process cannot be executed parallelly with the harmonization process within the same image; thus no thread lock needed)
+def do_super_resolution_process(curr_thread, win_name, done_callback, resize_ratio, **_):
+    # deal w/ paths
+    saved_path = Path(LoadedImagesDict.get_save_path(win_name))
+    sr_out_dir = str(saved_path.parent)
+    sr_out_path = os.path.join(sr_out_dir, f'{saved_path.stem}_sr{saved_path.suffix}')
+    # update the save-path of the sr'd image
+    LoadedImagesDict.update_sr_out_path(win_name, sr_out_path)
+    # determine the outscale
+    outscale = int(1. / resize_ratio) + 1
+    # apply super resolution
+    return_code = os.system(f'python ./Real-ESRGAN/inference_realesrgan.py -n RealESRGAN_x4plus -i \"{str(saved_path)}\" -o \"{sr_out_dir}\" -s {outscale} --suffix sr --fp32 ')
+    if return_code == 0:
+        # make sure the sr'd image has the same size as the raw one
+        sr, raw = gut_load_image(sr_out_path), LoadedImagesDict.get_original_image(win_name)
+        if sr.shape != raw.shape:
+            sr = cv2.resize(sr, (raw.shape[1], raw.shape[0],))
+            cv2.imwrite(sr_out_path, sr)
+        sr, raw = gut_load_image(sr_out_path), LoadedImagesDict.get_original_image(win_name)
+        
+        curr_thread.signal_process_done.emit(
+            ProcessStatus.WAITING,
+            f'The SR\'d (scale={outscale}) image has been saved to <i>{sr_out_path}</i>.',
+            Colors.LOG_PROCESS_DONE,
+            done_callback,
+        )
