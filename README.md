@@ -8,15 +8,19 @@
 
 # 貢獻
 
-1. 第一個將此篇 paper 完整實作出來（網上找的到的 open source 都只有不完整的實作）。
-1. 第一個結合 GUI（圖形使用者介面）的實作，含多項完整且細緻的功能。
-    + 四種讀取影像的方法：from local, drag-and-drop（拖曳）, from URL, and from clipboard。
-    + 針對每張影像提供 GUI 來調整參數設定。
-    + 多執行緒（multithreading）執行演算法，不影響 GUI 操作。
-    + 提供方便的原圖與結果的比較展示，效果如何一目瞭然。
-    + 可方便快速地儲存色彩調和的結果至本機。
-1. 可供 user 自行選擇 harmonic template type（七選一）；或是由程式自動尋找最佳的 template。
-1. 結合 Super Resolution (SR) 技術，改善演算法執行效率問題。
+1. 實作面
+    1. 第一個將此篇 paper 完整實作出來（網上找的到的 open source 都只有不完整的實作）。
+    1. 第一個結合 GUI（圖形使用者介面）的實作，含多項完整且細緻的功能。
+        + 四種讀取影像的方法：from local, drag-and-drop（拖曳）, from URL, and from clipboard。
+        + 針對每張影像提供 GUI 來調整參數設定。
+        + 可套用另外的 reference image 當作色彩調和的基準。
+        + 多執行緒（multithreading）執行演算法，不影響 GUI 操作。
+        + 提供方便的原圖與結果的比較展示，效果如何一目瞭然。
+        + 可方便快速地儲存色彩調和的結果至本機。
+        + 可供 user 自行選擇 harmonic template type（七選一）；或是由程式自動尋找最佳的 template。
+1. 算法面
+    1. 結合 Super Resolution (SR) 技術，改善演算法執行效率問題。
+    1. 結合前後景分割（image segmentation）技術，以前景的色調來調和背景；或以背景來調和前景。
 
 # How to run
 
