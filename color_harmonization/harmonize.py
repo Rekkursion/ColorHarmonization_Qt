@@ -228,7 +228,7 @@ def harmonize(
     print('all', np.prod(V.shape))
 
     # optimize the color-shifting with the help of the graph-cut image segmentation method
-    new_hsv = _apply_graph_cut(hsv, templ, alpha, _lambda, V, D, mask=mask)
+    new_hsv = _apply_graph_cut(hsv, templ, alpha, _lambda, V, D, mask=(mask if ref_im is None else None))
 
     # re-construct the color-harmonized image
     new_im = cv2.cvtColor(new_hsv, cv2.COLOR_HSV2BGR)
