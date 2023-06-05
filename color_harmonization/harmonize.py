@@ -8,6 +8,7 @@ import numpy as np
 import scipy
 
 from color_harmonization.harmonic_template import HarmonicTemplate_Base
+from seg import apply_interactive_segmentation
 from utils.general_utils import gut_resize_by_ratio
 from utils.harmonization_utils import (
     hut_add_opaque_channel,
@@ -19,9 +20,13 @@ from utils.harmonization_utils import (
 
 
 # calculate the histogram of hues from an image in the hsv space
-def _calc_hue_histogram(hsv_im):
+def _calc_hue_histogram(hsv_im, mask):
     # take out hues only from the hsv space
-    hues = hsv_im[:, :, 0].reshape(-1)
+    if mask is None:
+        hues = hsv_im[:, :, 0].reshape(-1)
+    else:
+        _y, _x = np.where(mask)
+        hues = hsv_im[_y, _x, 0].reshape(-1)
     # get the histogram on hues (the range of hues is 0 to 180)
     hist, _ = np.histogram(hues, bins=np.arange(181, dtype=np.int32))
     if len(hist) < 180:
@@ -30,9 +35,13 @@ def _calc_hue_histogram(hsv_im):
 
 
 # do an optimization for finding an alpha value that could minimize the distance
-def _search_alpha_value(hsv, templ: HarmonicTemplate_Base):
+def _search_alpha_value(hsv, templ: HarmonicTemplate_Base, mask):
     print('| Searching for ALPHA... ', end='')
-    flattened_hsv = hsv.reshape(-1, 3)
+    if mask is None:
+        flattened_hsv = hsv.reshape(-1, 3)
+    else:
+        _y, _x = np.where(mask)
+        flattened_hsv = hsv[_y, _x].reshape(-1, 3)
     H = flattened_hsv[:, 0]
     S = flattened_hsv[:, 1]
 
@@ -59,7 +68,7 @@ def _find_closest_borders_of_sectors_naively(hsv, templ: HarmonicTemplate_Base, 
     return V, D
 
 
-def _apply_graph_cut(hsv, templ: HarmonicTemplate_Base, alpha, _lambda, V, D):
+def _apply_graph_cut(hsv, templ: HarmonicTemplate_Base, alpha, _lambda, V, D, mask=None):
 
     ''' step 1. build a graph '''
     
@@ -130,6 +139,8 @@ def _apply_graph_cut(hsv, templ: HarmonicTemplate_Base, alpha, _lambda, V, D):
     gaussian_fn = lambda x, mu, sigma: 1. / (np.sqrt(2. * np.pi) * sigma) * np.exp(-np.power((x - mu) / sigma, 2.) / 2.)
     ret_hsv = copy.deepcopy(hsv)
     for (y, x,), hue in np.ndenumerate(hsv[:, :, 0]):
+        if mask is not None and mask[y, x] == 1:
+            continue
         if templ.is_in(hue, alpha)[0]:
             continue
         id = y * hsv.shape[1] + x
@@ -159,19 +170,31 @@ def harmonize(
         ref_im=None,
         ref_hsv=None,
         _lambda=.5,
-        mode='graph_cut',
+        mode='normal',
         **_,
 ):
-    assert mode in ('naive', 'graph_cut',), 'The processing mode must be either "naive" or "graph_cut".'
+    assert mode in ('background', 'foreground', 'normal',), 'The processing mode must be either "normal", "background", or "foreground".'
 
     vis_save_path = Path(vis_save_path)
     vis_parent, vis_stem, vis_ext = vis_save_path.parent, vis_save_path.stem, vis_save_path.suffix
 
+    mask = None
+    if mode != 'normal':
+        mask = apply_interactive_segmentation(
+            raw_im if ref_im is None else ref_im,
+            mode=mode,
+            win_name=f'{vis_stem}{vis_ext}',
+            plotout=True,
+        )
+    if mode == 'foreground':
+        mask = 1 - mask
+    
+    
     # get the histogram on hues (hue: 0 - 180, sat: 0 - 255, val: 0 - 255,)
     if ref_im is None:
-        hue_hist = _calc_hue_histogram(hsv)
+        hue_hist = _calc_hue_histogram(hsv, mask=mask)
     else:
-        hue_hist = _calc_hue_histogram(ref_hsv)
+        hue_hist = _calc_hue_histogram(ref_hsv, mask=mask)
 
     # search for the best alpha (and the best template, if the template-type is AUTO)
     best_alpha, best_templ, min_objective_f_value = 0., None, float('inf')
@@ -179,9 +202,9 @@ def harmonize(
         if len(templ_list) > 1:
             print(f'| TRYING THE TEMPLATE: {templ}-TYPE... |')
         if ref_im is None:
-            alpha, f_val = _search_alpha_value(hsv, templ)
+            alpha, f_val = _search_alpha_value(hsv, templ, mask=mask)
         else:
-            alpha, f_val = _search_alpha_value(ref_hsv, templ)
+            alpha, f_val = _search_alpha_value(ref_hsv, templ, mask=mask)
         if f_val < min_objective_f_value:
             best_alpha = alpha
             best_templ = templ
@@ -205,13 +228,13 @@ def harmonize(
     print('all', np.prod(V.shape))
 
     # optimize the color-shifting with the help of the graph-cut image segmentation method
-    new_hsv = _apply_graph_cut(hsv, templ, alpha, _lambda, V, D)
+    new_hsv = _apply_graph_cut(hsv, templ, alpha, _lambda, V, D, mask=mask)
 
     # re-construct the color-harmonized image
     new_im = cv2.cvtColor(new_hsv, cv2.COLOR_HSV2BGR)
     ret_im = copy.deepcopy(new_im)
     new_hsv = cv2.cvtColor(new_im, cv2.COLOR_BGR2HSV)
-    new_hue_hist = _calc_hue_histogram(new_hsv)
+    new_hue_hist = _calc_hue_histogram(new_hsv, mask=None)
     hut_visualize_histogram(new_hue_hist, templ, alpha, new_im, save_path=str(vis_parent / f'{vis_stem}_3-harmonized{vis_ext}'), show=False)
 
     # do visualization

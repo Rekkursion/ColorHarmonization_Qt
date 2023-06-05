@@ -65,13 +65,17 @@ class LoadedImagesWidget(QWidget):
             QPushButton:pressed {background-color: rgb(226, 230, 234);}
             QPushButton:hover:!pressed {background-color: rgb(226, 230, 234);}
         """)
-        self.btn_start_process = QPushButton('Start process')
+        self.btn_start_process = QPushButton('Start normal process')
+        self.btn_start_background_mode = QPushButton('Start background-mode process')
+        self.btn_start_foreground_mode = QPushButton('Start foreground-mode process')
         self.btn_save_processed = QPushButton('Save the processed image to...')
         self.btn_super_resolution = QPushButton('Super resolution')
         self.btn_save_processed_sr = QPushButton('Save the SR\'d image to...')
         self.hbox_thr = QHBoxLayout()
         self.hbox_thr.addWidget(self.btn_show_img, 0)
         self.hbox_thr.addWidget(self.btn_start_process, 1)
+        self.hbox_thr.addWidget(self.btn_start_background_mode, 1)
+        self.hbox_thr.addWidget(self.btn_start_foreground_mode, 1)
         self.hbox_thr.addWidget(self.btn_save_processed, 1)
         self.hbox_thr.addWidget(QLabel(' | '), 0)
         self.hbox_thr.addWidget(self.btn_super_resolution, 1)
@@ -124,7 +128,9 @@ class LoadedImagesWidget(QWidget):
         # open the configuration panel
         self.btn_configurate.clicked.connect(self.action_pop_up_configuration_panel)
         # start process (color harmonization)
-        self.btn_start_process.clicked.connect(self.action_start_process)
+        self.btn_start_process.clicked.connect(lambda: self.action_start_process(mode='normal'))
+        self.btn_start_background_mode.clicked.connect(lambda: self.action_start_process(mode='background'))
+        self.btn_start_foreground_mode.clicked.connect(lambda: self.action_start_process(mode='foreground'))
         # apply super-resolution on the processed image
         self.btn_super_resolution.clicked.connect(self.action_super_resolution)
         # save the processed image
@@ -145,11 +151,15 @@ class LoadedImagesWidget(QWidget):
         if status == ProcessStatus.LOADED:
             self.btn_configurate.setEnabled(True)
             self.btn_start_process.setEnabled(True)
+            self.btn_start_background_mode.setEnabled(True)
+            self.btn_start_foreground_mode.setEnabled(True)
             self.btn_save_processed.setEnabled(False)
             self.btn_configurate.click()
         elif status in (ProcessStatus.WAITING, ProcessStatus.PROCESSING,):
             self.btn_configurate.setEnabled(False)
             self.btn_start_process.setEnabled(False)
+            self.btn_start_background_mode.setEnabled(False)
+            self.btn_start_foreground_mode.setEnabled(False)
             self.btn_super_resolution.setEnabled(False)
             self.btn_save_processed.setEnabled(False)
             self.action_show_proc.setEnabled(False)
@@ -158,6 +168,8 @@ class LoadedImagesWidget(QWidget):
         elif status == ProcessStatus.DONE:
             self.btn_configurate.setEnabled(True)
             self.btn_start_process.setEnabled(True)
+            self.btn_start_background_mode.setEnabled(True)
+            self.btn_start_foreground_mode.setEnabled(True)
             self.btn_super_resolution.setEnabled(True)
             self.btn_save_processed.setEnabled(True)
             self.action_show_proc.setEnabled(True)
@@ -188,7 +200,7 @@ class LoadedImagesWidget(QWidget):
             pass
 
     # start the harmonization process
-    def action_start_process(self):
+    def action_start_process(self, mode):
         thread = ProcessThread(
             self,
             target=do_color_harmonization_process,
@@ -196,6 +208,7 @@ class LoadedImagesWidget(QWidget):
                 self.win_name,
                 LoadedImagesDict.get_original_image(self.win_name),
                 self,
+                mode,
             ),
             kwargs=self.process_cfg,
         )

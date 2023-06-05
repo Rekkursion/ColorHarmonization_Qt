@@ -6,16 +6,21 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
-def apply_interactive_segmentation(fpath, plotout=False):
+def apply_interactive_segmentation(fpath_or_im, mode, win_name='', plotout=False):
     # img = cv2.imread('./resource/test_img/fig7a.png', -1)
-    img = cv2.imread(fpath, -1)
+    if isinstance(fpath_or_im, str):
+        img = cv2.imread(fpath_or_im, -1)
+    else:
+        img = fpath_or_im
+    
     if img.shape[-1] == 4:
         img = img[:, :, : 3]
     mask = np.zeros(img.shape[: 2], np.uint8)
     
     # let user select the roi
     # rect = (0, 0, img.shape[1] - 1, img.shape[0] - 1,)
-    rect = cv2.selectROI('', img)
+    rect = cv2.selectROI('Select the bounding box of the foreground', img)
+    cv2.destroyWindow('Select the bounding box of the foreground')
 
     bgdModel = np.zeros((1, 65), np.float64)
     fgdModel = np.zeros((1, 65), np.float64)
@@ -24,14 +29,16 @@ def apply_interactive_segmentation(fpath, plotout=False):
     mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype(np.uint8)
 
     if plotout:
-        img = img * mask2[:, :, np.newaxis]
-        plt.imshow(mask2)
-        plt.colorbar()
-        plt.show()
-        plt.imshow(img)
-        plt.show()
+        vis = np.tile(np.expand_dims(mask2, axis=2), reps=(1, 1, 3,)) * 255
+        vis = np.hstack([vis, img, (img & (vis if mode == 'background' else 255 - vis)),], dtype=np.uint8)
+        cv2.imshow(f'Segmentation: mode={mode} name={win_name}', vis)
+    
     return mask2
 
 
 if __name__ == '__main__':
-    apply_interactive_segmentation('./resource/test_img/fig7a.png', plotout=True)
+    apply_interactive_segmentation(
+        './resource/test_img/fig7a.png',
+        'background',
+        plotout=True,
+    )

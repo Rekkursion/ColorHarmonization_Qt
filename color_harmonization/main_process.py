@@ -45,7 +45,8 @@ class ProcessThread(QtCore.QThread):
 
 
 # start doing the color harmonization process
-def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, ref_im_fpath=None):
+def do_process(curr_thread, win_name, img, widget, mode, resize_ratio, template_type, ref_im_fpath=None):
+    assert mode in ('background', 'foreground', 'normal',), 'The processing mode must be either "normal", "background", or "foreground".'
     if img is None:
         return
     if widget.process_status in (ProcessStatus.ERROR, ProcessStatus.LOADING, ProcessStatus.PROCESSING,):
@@ -62,7 +63,7 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, 
         try:
             ''' start '''
 
-            print(f'| PROCESS | {win_name} | {img.shape} | {resize_ratio:.2f} | {template_type} |')
+            print(f'| PROCESS | {win_name} | {mode} | {img.shape} | {resize_ratio:.2f} | {template_type} |')
             widget.notify_status_change(ProcessStatus.PROCESSING)
 
             ''' harmonize '''
@@ -106,6 +107,7 @@ def do_process(curr_thread, win_name, img, widget, resize_ratio, template_type, 
                 result_save_path=save_res_path,
                 ref_im=ref_im,
                 ref_hsv=ref_hsv,
+                mode=mode,
             )
             # update the processed image
             LoadedImagesDict.update_processed_image(win_name, harmonized)
