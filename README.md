@@ -6,6 +6,10 @@
 + Introduction to Color Harmonization (Google Slides):
     + https://docs.google.com/presentation/d/1flpqVetunF4u45N0L_M5hjcgTPlmym2C/edit?usp=sharing&ouid=108114821901174243032&rtpof=true&sd=true
 
+# 程式 Demo 影片
+
+https://youtu.be/Fd-HIYI_siQ
+
 # 貢獻
 
 1. 實作面
