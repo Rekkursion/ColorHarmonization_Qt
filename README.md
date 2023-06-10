@@ -5,6 +5,8 @@
 + A third-party Python implementation with GUI of the paper **Color Harmonization** (https://dl.acm.org/doi/abs/10.1145/1179352.1141933) with user-friendly features and some refinement
 + Introduction to Color Harmonization (Google Slides):
     + https://docs.google.com/presentation/d/1flpqVetunF4u45N0L_M5hjcgTPlmym2C/edit?usp=sharing&ouid=108114821901174243032&rtpof=true&sd=true
++ Github repo:
+    + https://github.com/Rekkursion/ColorHarmonization_Qt.git
 
 # 程式 Demo 影片
 
