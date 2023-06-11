@@ -10,7 +10,9 @@
 
 # 程式 Demo 影片
 
-https://youtu.be/Fd-HIYI_siQ
+~~https://youtu.be/Fd-HIYI_siQ~~
+
+→ https://youtu.be/CTHk3Gr-orY （內嵌 + 修正字幕）
 
 # 貢獻
 
